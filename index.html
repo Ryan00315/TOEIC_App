@@ -163,20 +163,18 @@
                 <button onclick="location.reload()" class="text-2xl text-white">✕</button>
             </div>
 
-            <div id="quiz-card-container" onclick="window.handleCardClick(event)" class="card-flip w-full min-h-[220px] relative mb-4">
-                <div id="quiz-card" class="card-inner w-full h-full">
-                    <div class="card-front bg-indigo-600 text-white rounded-[40px] flex flex-col items-center justify-center p-8 absolute inset-0 w-full h-full">
-                        <p id="q-meaning-front" class="text-3xl font-black text-center w-full break-words whitespace-pre-line"></p>
+            <div id="quiz-card-container" onclick="window.handleCardClick(event)" class="card-flip w-full h-[160px] relative mb-4">
+                <div id="quiz-card" class="card-inner">
+                    <div class="card-front bg-indigo-600 text-white rounded-[40px] flex flex-col items-center justify-center p-8 h-full">
+                        <p id="q-meaning-front" class="text-3xl font-black text-center w-full"></p>
                         <div id="hear-icon" class="text-6xl hidden">🎧</div>
                     </div>
-                    <div class="card-back bg-white text-slate-900 rounded-[40px] p-6 text-center flex flex-col items-center justify-center absolute inset-0 w-full h-full">
-                        <div class="w-full my-auto">
-                            <p id="q-word-answer" class="text-indigo-600 font-black text-3xl mb-1 break-all"></p>
-                            <p id="q-reading-back" class="text-slate-400 font-bold text-sm mb-1 break-all"></p>
-                            <p id="q-meaning-back" class="text-lg font-bold text-slate-500 break-all"></p>
-                        </div>
-                        <div class="mt-4 shrink-0">
-                            <button onclick="window.playCurrentWord(event)" class="audio-btn w-12 h-12 bg-indigo-50 hover:bg-indigo-100 rounded-full text-xl shadow-sm flex items-center justify-center active:scale-90 transition-all pointer-events-auto">🔊</button>
+                    <div class="card-back bg-white text-slate-900 rounded-[40px] p-8 text-center flex flex-col items-center justify-center">
+                        <p id="q-word-answer" class="text-indigo-600 font-black text-3xl mb-2"></p>
+                        <p id="q-reading-back" class="text-slate-400 font-bold text-base mb-1"></p>
+                        <p id="q-meaning-back" class="text-lg font-bold text-slate-500"></p>
+                        <div class="mt-8">
+                            <button onclick="window.playCurrentWord(event)" class="audio-btn bg-slate-50 p-5 rounded-full text-3xl shadow-inner active:scale-90">🔊</button>
                         </div>
                     </div>
                 </div>
@@ -470,7 +468,7 @@
             } else {
                 btn.onclick = window.submitNewWord;
                 if (window.newWordBook === 'note') {
-                    btn.innerText = "儲42171125個人多益筆記";
+                    btn.innerText = "儲存個人多益筆記";
                     btn.className = "w-3/4 mx-auto bg-orange-500 text-white py-3 rounded-2xl font-bold shadow-xl block text-sm";
                 } else {
                     btn.innerText = "儲存到多益單字冊";
@@ -604,10 +602,10 @@
                 li.className = "bg-white p-5 rounded-[28px] border border-slate-200/80 shadow-sm flex flex-col relative group transition-all";
                 li.setAttribute("data-id", v.id);
 
-                // 【修改點 3】例句完全獨立到最下方，拉寬至 w-[calc(100%+1rem)] -ml-2，並直接移除原本的「Ex:」前綴字樣
+                // 【修改點】例句完全獨立到最下方，並往外撐寬 w-[calc(100%+1rem)] -ml-2，絕不影響上方原本單字大小
                 const exampleHTML = v.example 
                     ? `<div class="w-[calc(100%+1rem)] -ml-2 mt-3.5">
-                        <p class="text-xs text-slate-400 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/30 block w-full leading-relaxed">${v.example}</p>
+                        <p class="text-xs text-slate-400 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/30 block w-full leading-relaxed"> ${v.example}</p>
                        </div>` 
                     : '';
 
@@ -619,7 +617,7 @@
                        </div>`
                     : '';
 
-                // 【修改點 1】錯幾次標籤移到 lesson 和 type 順序後面
+                // 【修改點】下方中文意思改成質感橘色：text-orange-500 加上 font-black 極粗體
                 li.innerHTML = `
                     <div class="w-full">
                         <div class="flex justify-between items-start w-full">
@@ -988,6 +986,7 @@
             } else if(window.quizMode === 'standard') {
                 document.getElementById("q-meaning-front").classList.remove("hidden");
                 document.getElementById("q-meaning-front").innerText = window.currentQuizWord.word;
+                document.getElementById("standard-actions").grid;
                 document.getElementById("standard-actions").classList.remove("hidden");
                 document.getElementById("tap-to-reveal").classList.remove("hidden");
             } else if(window.quizMode === 'hearing') {
@@ -1125,9 +1124,9 @@
             });
         };
 
-        // 爬取英文例句
+        // 開發者輔助：全自動補充生詞庫中沒有的開源英文例句
         window.bulkFillExamples = async () => {
-            if(!confirm("即將開始掃描全庫填補未提供例句的單字，確定開始？")) return;
+            if(!confirm("即將開始掃描全庫，對所有「沒有例句」的單字自動從開源 Dictionary API 爬取例句，確定開始？")) return;
             let updatedCount = 0;
             for(const v of window.vocabs) {
                 if(!v.example || v.example.includes("未提供例句")) {
@@ -1149,7 +1148,7 @@
                     } catch(e) { console.error(e); }
                 }
             }
-            window.showToast(`補全完畢！共成功添加 ${updatedCount} 個句型例句`);
+            window.showToast(`補全完畢！共成功修復並添加 ${updatedCount} 個句型例句`);
         };
 
         // 備份匯出
@@ -1163,17 +1162,19 @@
             downloadAnchor.remove();
         };
 
-        // Firebase 連線監聽
+        // Firebase 雙向即時串流監聽連線初始化
         document.addEventListener("DOMContentLoaded", () => {
             window.renderUserHistory();
             window.renderFilters();
 
+            // 監聽單字庫
             onSnapshot(query(vocabsCol, orderBy("createdAt", "asc")), (snapshot) => {
                 window.vocabs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 window.checkDuplicate();
                 window.renderList();
             });
 
+            // 監聽弱點進度
             onSnapshot(progressCol, (snapshot) => {
                 window.userProgress = {};
                 snapshot.docs.forEach(doc => {
@@ -1186,7 +1187,7 @@
             });
         });
 
-        // 鍵盤快捷鍵
+        // 鍵盤 Shift + 左右箭頭快捷鍵監聽系統
         window.addEventListener("keydown", (e) => {
             const overlay = document.getElementById("quiz-overlay");
             if (overlay.classList.contains("hidden")) return;
@@ -1202,3 +1203,4 @@
     </script>
 </body>
 </html>
+
