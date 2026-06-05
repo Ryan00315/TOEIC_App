@@ -303,6 +303,7 @@
         ];
 
         // 🟢 重點升級 1 & 2：結合免費 Google 翻譯與免費音標/音節 API 引擎
+        // 🟢 重點升級 1 & 2：結合免費 Google 翻譯與免費音標/音節 API 引擎
         window.autoTranslate = async () => {
             if (window.isTranslating) {
                 window.showToast("🤖 自動查詢中...");
@@ -319,19 +320,18 @@
         
             const readingEl = document.getElementById("reading"); 
             const meaningEl = document.getElementById("meaning");
-            // 新增：抓取你的輸入區塊或編輯區塊的例句輸入框（此處以新增/編輯欄位為例）
-            const exampleEl = document.getElementById("edit-example"); 
+            const exampleEl = document.getElementById("word-example"); // 鎖定新增單字的例句欄位
             const transBtn = document.getElementById("translate-btn-action");
         
-            if (window.translateCache[inputVal]) {
+            // 💡 優化快取判斷：如果快取有資料且包含例句，才直接使用快取
+            if (window.translateCache[inputVal] && window.translateCache[inputVal].example) {
                 const cached = window.translateCache[inputVal];
                 if (readingEl) readingEl.value = cached.phonetic || "";
                 if (meaningEl) {
                     meaningEl.value = cached.chinese || "";
                     meaningEl.dispatchEvent(new Event("input", { bubbles: true }));
                 }
-                // 如果快取有例句就一同填入
-                if (exampleEl && cached.example) exampleEl.value = cached.example;
+                if (exampleEl) exampleEl.value = cached.example || "";
                 window.showToast("⚡ 使用快取數據");
                 return;
             }
@@ -358,7 +358,7 @@
                     const dictData = await dictRes.json();
                     phoneticText = dictData[0]?.phonetic || dictData[0]?.phonetics?.find(p => p.text)?.text || "";
                     
-                    // 💡 關鍵優化：從 API 回傳的定義中尋找 example 例句
+                    // 從 API 回傳的定義中尋找 example 例句
                     const meanings = dictData[0]?.meanings || [];
                     for (const m of meanings) {
                         const definitionWithExample = m.definitions?.find(d => d.example);
@@ -385,11 +385,9 @@
                     meaningEl.dispatchEvent(new Event("input", { bubbles: true }));
                 }
                 
-                // 💡 如果有抓到 API 的英文例句，自動填入對應的欄位
-                if (exampleText) {
-                    // 如果你在新增面板也加了 <textarea id="word-example"></textarea>，可以改填那裡
-                    const targetExampleField = document.getElementById("word-example") || document.getElementById("edit-example");
-                    if (targetExampleField) targetExampleField.value = exampleText;
+                // 💡 精準填入新增單字區塊的例句欄位
+                if (exampleEl) {
+                    exampleEl.value = exampleText || "（此單字開源 API 未提供例句）";
                 }
         
                 // 儲存至快取
@@ -399,7 +397,7 @@
                     example: exampleText // 快取例句
                 };
                 localStorage.setItem("toeic_translate_cache_v1", JSON.stringify(window.translateCache));
-                window.showToast("✨ 免費查詢成功（含例句）！");
+                window.showToast(exampleText ? "✨ 免費查詢成功（含例句）！" : "✨ 查詢成功（此字無例句）");
         
             } catch (e) {
                 console.error("翻譯或音標獲取失敗：", e);
@@ -676,28 +674,34 @@
             window.checkDuplicate();
         };
 
-        window.submitNewWord = async () => {
+window.submitNewWord = async () => {
             const word = document.getElementById("word").value.trim();
             const reading = document.getElementById("reading").value.trim();
             const meaning = document.getElementById("meaning").value.trim();
+            const example = document.getElementById("word-example").value.trim(); // 💡 1. 抓取新增面板的例句內容
 
-            if(!word || !meaning) { alert("請填寫單字與中文意思"); return; }
+            if(!word || !meaning) { alert("請填寫單字"); return; }
 
             try {
                 await addDoc(vocabsCol, {
                     word,
                     reading,
                     meaning,
+                    example, // 💡 2. 將例句同步儲存至 Firebase 雲端資料庫
                     lesson: window.selectedNewLesson,
                     type: window.selectedNewCat,
                     timestamp: Date.now(),
                     uid: window.selectedNewLesson === '個人筆記' ? currentUser : "",
                     sortOrder: window.vocabs.length
                 });
+                
+                // 💡 3. 儲存成功後，把所有輸入框（包含例句）清空
                 document.getElementById("word").value = "";
                 document.getElementById("reading").value = "";
                 document.getElementById("meaning").value = "";
-                window.showToast("🎉 成功新增多益單字！");
+                document.getElementById("word-example").value = ""; 
+                
+                window.showToast("🎉 成功新增單字！");
                 window.checkDuplicate();
             } catch(e) {
                 alert("儲存失敗");
