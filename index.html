@@ -108,11 +108,25 @@
                 <input id="reading" type="text" placeholder="KK音標 與 音節 (自動生成)" onfocus="window.fixScroll()" class="bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300">
             </div>
             <div class="relative mb-4 text-left">
-                <input id="meaning" type="text" placeholder="中文意思 (自動翻譯)" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 pr-36 rounded-2xl outline-none text-sm border focus:border-indigo-300">
+                <input id="meaning" type="text" placeholder="中文意思 (自動翻譯)" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 pr-36 rounded-2xl outline-none text-sm border focus:border-indigo-300 font-bold">
                 <button id="translate-btn-action" onclick="window.autoTranslate()" class="absolute right-2 top-2 bottom-2 bg-white text-[10px] px-2 rounded-xl border border-slate-200 font-bold text-slate-500 transition-all">👉 免費 Google 翻譯</button>
             </div>
             <div class="mb-4 text-left">
+                <input id="collocation" type="text" placeholder="🎯 多益常考搭配詞 (例如: fulfill the requirements)" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300">
+            </div>
+            <div class="mb-4 text-left">
                 <textarea id="word-example" placeholder="多益商務例句 (自動翻譯時會自動填入)" class="w-full bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300 h-20 resize-none"></textarea>
+            </div>
+            <div class="mb-4 text-left">
+                <label class="block text-[11px] font-bold text-slate-400 mb-1 pl-2">🏷️ 多益情境標籤 (聯想群聚記憶)</label>
+                <select id="word-tag" class="w-full bg-slate-50 p-3 rounded-2xl outline-none text-sm border focus:border-indigo-300">
+                    <option value="">-- 無情境標籤 --</option>
+                    <option value="人資招募">#人資招募</option>
+                    <option value="商務合約">#商務合約</option>
+                    <option value="財務金融">#財務金融</option>
+                    <option value="行銷銷售">#行銷銷售</option>
+                    <option value="行政辦公">#行政辦公</option>
+                </select>
             </div>
             <div class="flex gap-2 mb-3">
                 <button id="new-book1-tab" onclick="window.setNewBookTab(1)" class="flex-1 border py-1.5 rounded-xl text-xs font-bold transition-all">核心字彙</button>
@@ -163,18 +177,20 @@
                 <button onclick="location.reload()" class="text-2xl text-white">✕</button>
             </div>
 
-            <div id="quiz-card-container" onclick="window.handleCardClick(event)" class="card-flip w-full h-[160px] relative mb-4">
+            <div id="quiz-card-container" onclick="window.handleCardClick(event)" class="card-flip w-full min-h-[220px] relative mb-4">
                 <div id="quiz-card" class="card-inner">
                     <div class="card-front bg-indigo-600 text-white rounded-[40px] flex flex-col items-center justify-center p-8 h-full">
-                        <p id="q-meaning-front" class="text-3xl font-black text-center w-full"></p>
+                        <p id="q-meaning-front" class="text-3xl font-black text-center w-full break-all"></p>
                         <div id="hear-icon" class="text-6xl hidden">🎧</div>
                     </div>
-                    <div class="card-back bg-white text-slate-900 rounded-[40px] p-8 text-center flex flex-col items-center justify-center">
-                        <p id="q-word-answer" class="text-indigo-600 font-black text-3xl mb-2"></p>
-                        <p id="q-reading-back" class="text-slate-400 font-bold text-base mb-1"></p>
-                        <p id="q-meaning-back" class="text-lg font-bold text-slate-500"></p>
-                        <div class="mt-8">
-                            <button onclick="window.playCurrentWord(event)" class="audio-btn bg-slate-50 p-5 rounded-full text-3xl shadow-inner active:scale-90">🔊</button>
+                    <div class="card-back bg-white text-slate-900 rounded-[40px] p-6 text-center flex flex-col items-center justify-center">
+                        <div class="my-auto w-full">
+                            <p id="q-word-answer" class="text-indigo-600 font-black text-3xl mb-1 break-all"></p>
+                            <p id="q-reading-back" class="text-slate-400 font-bold text-sm mb-1 break-all"></p>
+                            <p id="q-meaning-back" class="text-base font-bold text-slate-500 break-all"></p>
+                        </div>
+                        <div class="mt-4 shrink-0">
+                            <button onclick="window.playCurrentWord(event)" class="audio-btn w-12 h-12 bg-slate-100 hover:bg-slate-200 rounded-full flex items-center justify-center text-xl shadow-sm active:scale-90 transition-all pointer-events-auto">🔊</button>
                         </div>
                     </div>
                 </div>
@@ -194,7 +210,7 @@
                 <p id="feedback-msg" class="mt-2 text-[10px] font-bold h-5"></p>
             </div>
 
-            <div id="standard-actions" class="grid grid-cols-2 gap-4 mb-4">
+            <div id="standard-actions" class="grid grid-cols-2 gap-4 mb-4 mt-auto">
                 <button onclick="window.quizFail()" class="bg-rose-500/10 border-2 border-rose-500 text-rose-500 py-6 rounded-3xl font-black">加強 (Shift+←)</button>
                 <button onclick="window.quizPass()" class="bg-emerald-500 text-white py-6 rounded-3xl font-black shadow-lg">記住了 (Shift+→)</button>
             </div>
@@ -435,10 +451,7 @@
             synth.cancel(); 
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US'; 
-            const voices = synth.getVoices();
-            const englishVoice = voices.find(v => v.lang.includes('en-US') && v.name.includes('Google'));
-            if (englishVoice) utterance.voice = englishVoice;
-            utterance.rate = 0.9;
+            utterance.rate = 0.85;
             synth.speak(utterance);
         };
 
@@ -576,9 +589,8 @@
 
                 if (searchStr) {
                     const matchW = (v.word || "").toLowerCase().includes(searchStr);
-                    const matchR = (v.reading || "").toLowerCase().includes(searchStr);
                     const matchM = (v.meaning || "").toLowerCase().includes(searchStr);
-                    if (!matchW && !matchR && !matchM) return false;
+                    if (!matchW && !matchM) return false;
                 }
                 return true;
             });
@@ -597,15 +609,15 @@
             }
 
             filtered.forEach(v => {
-                const progress = window.userProgress[v.id] || { wrongCount: 0 };
+                const prog = window.userProgress[v.id] || { wrongCount: 0 };
                 const li = document.createElement("li");
-                li.className = "bg-white p-5 rounded-[28px] border border-slate-200/80 shadow-sm flex flex-col relative group transition-all";
                 li.setAttribute("data-id", v.id);
+                li.className = "bg-white rounded-[32px] p-5 border border-slate-200 shadow-sm relative flex flex-col justify-between transition-all duration-300";
 
-                // 【修改點】例句完全獨立到最下方，並往外撐寬 w-[calc(100%+1rem)] -ml-2，絕不影響上方原本單字大小
+                // 【修改點 3】獨立到最下方、拉長寬度、且完全刪除 Ex: 前綴字樣
                 const exampleHTML = v.example 
                     ? `<div class="w-[calc(100%+1rem)] -ml-2 mt-3.5">
-                        <p class="text-xs text-slate-400 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/30 block w-full leading-relaxed"> ${v.example}</p>
+                        <p class="text-xs text-slate-400 font-medium bg-slate-50 p-3 rounded-xl border border-slate-200/50 block w-full leading-relaxed">${v.example}</p>
                        </div>` 
                     : '';
 
@@ -617,26 +629,30 @@
                        </div>`
                     : '';
 
-                // 【修改點】下方中文意思改成質感橘色：text-orange-500 加上 font-black 極粗體
+                const tagHTML = v.tag ? `<span class="text-[10px] bg-amber-50 text-amber-600 border border-amber-100 px-2 py-0.5 rounded-md font-bold">#${v.tag}</span>` : '';
+
+                // 【修改點 1】錯幾次標籤移到 lesson 和 type 順序後面
                 li.innerHTML = `
                     <div class="w-full">
                         <div class="flex justify-between items-start w-full">
                             <div class="flex-1 pr-2">
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-xs font-black bg-slate-100 px-2 py-0.5 rounded-md text-slate-500">${v.lesson}</span>
-                                    <span class="text-xs font-black bg-indigo-50 px-2 py-0.5 rounded-md text-indigo-500">${v.type}</span>
-                                    ${progress.wrongCount > 0 ? `<span class="text-[10px] bg-rose-500 text-white font-extrabold px-1.5 py-0.5 rounded-full">🔥 弱點 ${progress.wrongCount}次</span>` : ''}
+                                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                    <span class="text-xs font-black bg-slate-100 px-2 py-0.5 rounded-md text-slate-500">${v.lesson||'未分類'}</span>
+                                    <span class="text-xs font-black bg-indigo-50 px-2 py-0.5 rounded-md text-indigo-500">${v.type||'n.'}</span>
+                                    <span class="text-[9px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-md font-bold">錯 ${prog.wrongCount||0} 次</span>
+                                    ${tagHTML}
                                 </div>
-                                <h3 class="text-xl font-black text-slate-900 tracking-tight mt-1.5">${v.word}</h3>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <h3 class="text-xl font-black text-slate-900 tracking-tight">${v.word}</h3>
+                                    <button onclick="window.speakAction('${v.word.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-volume-high text-xs"></i></button>
+                                </div>
                                 <p class="text-xs text-slate-400 font-medium">${v.reading || ''}</p>
                                 <p class="text-base font-black text-orange-500 mt-1.5">${v.meaning}</p>
+                                ${v.collocation ? `<div class="mt-2 text-xs font-bold text-indigo-500 bg-indigo-50/50 border border-indigo-100/40 px-2.5 py-1.5 rounded-xl"><span class="bg-indigo-500 text-white text-[9px] px-1 rounded font-black mr-1">🎯 搭配</span>${v.collocation}</div>` : ''}
                             </div>
                             
                             <div class="flex flex-col items-end gap-3 justify-between min-h-[60px] shrink-0">
                                 ${manageButtonsHTML}
-                                <button onclick="window.speakAction('${v.word?.replace(/'/g, "\\'")}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 p-3 rounded-full shadow-sm active:scale-90 transition-all">
-                                    🔊
-                                </button>
                             </div>
                         </div>
                         ${exampleHTML}
@@ -986,7 +1002,6 @@
             } else if(window.quizMode === 'standard') {
                 document.getElementById("q-meaning-front").classList.remove("hidden");
                 document.getElementById("q-meaning-front").innerText = window.currentQuizWord.word;
-                document.getElementById("standard-actions").grid;
                 document.getElementById("standard-actions").classList.remove("hidden");
                 document.getElementById("tap-to-reveal").classList.remove("hidden");
             } else if(window.quizMode === 'hearing') {
@@ -1124,9 +1139,9 @@
             });
         };
 
-        // 開發者輔助：全自動補充生詞庫中沒有的開源英文例句
+        // 爬取例句
         window.bulkFillExamples = async () => {
-            if(!confirm("即將開始掃描全庫，對所有「沒有例句」的單字自動從開源 Dictionary API 爬取例句，確定開始？")) return;
+            if(!confirm("即將開始自動填補未提供例句的單字，確定開始？")) return;
             let updatedCount = 0;
             for(const v of window.vocabs) {
                 if(!v.example || v.example.includes("未提供例句")) {
@@ -1162,19 +1177,17 @@
             downloadAnchor.remove();
         };
 
-        // Firebase 雙向即時串流監聽連線初始化
+        // Firebase 監聽連線
         document.addEventListener("DOMContentLoaded", () => {
             window.renderUserHistory();
             window.renderFilters();
 
-            // 監聽單字庫
             onSnapshot(query(vocabsCol, orderBy("createdAt", "asc")), (snapshot) => {
                 window.vocabs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 window.checkDuplicate();
                 window.renderList();
             });
 
-            // 監聽弱點進度
             onSnapshot(progressCol, (snapshot) => {
                 window.userProgress = {};
                 snapshot.docs.forEach(doc => {
@@ -1187,7 +1200,7 @@
             });
         });
 
-        // 鍵盤 Shift + 左右箭頭快捷鍵監聽系統
+        // 鍵盤快捷鍵
         window.addEventListener("keydown", (e) => {
             const overlay = document.getElementById("quiz-overlay");
             if (overlay.classList.contains("hidden")) return;
@@ -1203,4 +1216,3 @@
     </script>
 </body>
 </html>
-
