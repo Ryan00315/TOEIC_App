@@ -1,33 +1,360 @@
-window.submitNewWord = async () => {
-            const word = document.getElementById("word").value.trim();
-            const reading = document.getElementById("reading").value.trim();
-            const meaning = document.getElementById("meaning").value.trim();
-            const example = document.getElementById("word-example").value.trim(); // 💡 1. 抓取新增面板的例句內容
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日文單字測驗系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        .drag-handle {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 pb-12">
 
-            if(!word || !meaning) { alert("請填寫單字與中文意思"); return; }
+    <div class="max-w-md mx-auto px-4 pt-6">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-black tracking-tight text-slate-900">我的單字庫</h1>
+            <div class="flex gap-2">
+                <button id="btn-book-all" onclick="window.switchBook('all')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all">主要書本</button>
+                <button id="btn-book-note" onclick="window.switchBook('note')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-200 text-slate-600 hover:bg-slate-300 transition-all">個人筆記</button>
+            </div>
+        </header>
 
-            try {
-                await addDoc(vocabsCol, {
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm mb-6 space-y-3">
+            <input type="text" id="searchInput" oninput="window.renderList()" placeholder="搜尋單字、讀音或中文..." class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 focus:outline-none focus:border-indigo-500 text-sm">
+            
+            <div class="flex gap-2 flex-wrap text-xs">
+                <button onclick="window.toggleManualSort()" id="btn-manual-sort" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl text-slate-600">
+                    排序：自動
+                </button>
+                <button onclick="window.toggleSortOrder()" id="btn-sort-order" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl text-slate-600">
+                    字首：升序
+                </button>
+                <button onclick="window.openAddModal()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 font-bold rounded-xl text-indigo-600 ml-auto">
+                    ＋ 新增單字
+                </button>
+            </div>
+        </div>
+
+        <ul id="vocab-list" class="space-y-4">
+            </ul>
+    </div>
+
+    <div id="word-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden px-4">
+        <div class="bg-white rounded-[32px] p-6 w-full max-w-sm border border-slate-100 shadow-xl">
+            <h3 id="modal-title" class="text-xl font-black text-slate-900 mb-4">新增單字</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">課別 / 分類</label>
+                    <input type="text" id="input-lesson" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="例如：L1 或 個人筆記">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">單字類別</label>
+                    <input type="text" id="input-type" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="例如：名詞、動詞">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">日文單字</label>
+                    <input type="text" id="input-word" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="例如：日本語">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">假名讀音</label>
+                    <input type="text" id="input-reading" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="例如：にほんご">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">中文意思</label>
+                    <input type="text" id="input-meaning" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="例如：日語">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">例句 (選填)</label>
+                    <textarea id="input-example" class="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500 h-20 resize-none" placeholder="輸入參考例句..."></textarea>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-6">
+                <button onclick="window.closeWordModal()" class="flex-1 py-3 bg-slate-100 font-bold rounded-2xl text-slate-500 text-sm active:bg-slate-200">取消</button>
+                <button onclick="window.saveWordAction()" class="flex-1 py-3 bg-indigo-600 font-bold rounded-2xl text-white text-sm shadow-sm active:bg-indigo-700">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模擬當前使用者與書本對應表
+        const currentUser = "user123";
+        const BOOK_MAP = {
+            all: ["L1", "L2", "L3", "L4", "L5"],
+            note: ["個人筆記"]
+        };
+        const LESSON_ORDER = ["L1", "L2", "L3", "L4", "L5", "個人筆記"];
+
+        // 初始假資料
+        window.vocabs = [
+            { id: "1", uid: "user123", lesson: "L1", type: "名詞", word: "学生", reading: "がくせい", meaning: "學生", example: "私は学生です。これから毎日日本語を一生懸命勉強して、将来は日本で働きたいと思っています。", sortOrder: 1 },
+            { id: "2", uid: "user123", lesson: "L1", type: "名詞", word: "先生", reading: "せんせい", meaning: "老師", example: "あの方は日本語の先生です。", sortOrder: 2 },
+            { id: "3", uid: "user123", lesson: "個人筆記", uid: "user123", type: "動詞", word: "食べる", reading: "たべる", meaning: "吃（自訂儲存的單字顏色測試）", example: "朝ご飯に美味しいりんごを食べました。", sortOrder: 3 }
+        ];
+
+        window.userProgress = {
+            "1": { wrongCount: 2 },
+            "2": { wrongCount: 0 }
+        };
+
+        // 狀態管理
+        window.currentBook = 'all';
+        window.selectedLessons = [];
+        window.selectedTypes = [];
+        window.sortOrder = 'asc';
+        window.manualSortEnabled = false;
+        window.editingWordId = null;
+        let sortableInstance = null;
+
+        // 切換書本分類
+        window.switchBook = (book) => {
+            window.currentBook = book;
+            const btnAll = document.getElementById("btn-book-all");
+            const btnNote = document.getElementById("btn-book-note");
+            if (book === 'all') {
+                btnAll.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all";
+                btnNote.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-200 text-slate-600 hover:bg-slate-300 transition-all";
+            } else {
+                btnAll.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-200 text-slate-600 hover:bg-slate-300 transition-all";
+                btnNote.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm transition-all";
+            }
+            window.renderList();
+        };
+
+        // 自動與手動排序切換
+        window.toggleManualSort = () => {
+            window.manualSortEnabled = !window.manualSortEnabled;
+            document.getElementById("btn-manual-sort").innerText = window.manualSortEnabled ? "排序：手動拖曳" : "排序：自動";
+            window.renderList();
+        };
+
+        // 升序降序切換
+        window.toggleSortOrder = () => {
+            window.sortOrder = window.sortOrder === 'asc' ? 'desc' : 'asc';
+            document.getElementById("btn-sort-order").innerText = window.sortOrder === 'asc' ? "字首：升序" : "字首：降序";
+            if (!window.manualSortEnabled) window.renderList();
+        };
+
+        // 主要清單渲染系統 (優化版：中文顏色自訂、例句極致寬度)
+        window.renderList = () => {
+            const listEl = document.getElementById("vocab-list");
+            if (!listEl) return;
+            listEl.innerHTML = "";
+
+            const searchStr = document.getElementById("searchInput").value.trim().toLowerCase();
+
+            let filtered = window.vocabs.filter(v => {
+                if (window.currentBook === 'note') {
+                    if (v.lesson !== '個人筆記' || v.uid !== currentUser) return false;
+                } else {
+                    if (v.lesson === '個人筆記') return false;
+                    const possibleLessons = BOOK_MAP[window.currentBook] || [];
+                    if (!possibleLessons.includes(v.lesson)) return false;
+                }
+
+                if (window.selectedLessons.length && !window.selectedLessons.includes(v.lesson)) return false;
+                if (window.selectedTypes.length && !window.selectedTypes.includes(v.type)) return false;
+
+                if (searchStr) {
+                    const matchW = (v.word || "").toLowerCase().includes(searchStr);
+                    const matchR = (v.reading || "").toLowerCase().includes(searchStr);
+                    const matchM = (v.meaning || "").toLowerCase().includes(searchStr);
+                    if (!matchW && !matchR && !matchM) return false;
+                }
+                return true;
+            });
+
+            if (!window.manualSortEnabled) {
+                filtered.sort((a, b) => {
+                    const indexA = LESSON_ORDER.indexOf(a.lesson);
+                    const indexB = LESSON_ORDER.indexOf(b.lesson);
+                    if (indexA !== indexB) return indexA - indexB;
+                    return window.sortOrder === 'asc' 
+                        ? (a.word || "").localeCompare(b.word || "") 
+                        : (b.word || "").localeCompare(a.word || "");
+                });
+            } else {
+                filtered.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+            }
+
+            filtered.forEach(v => {
+                const progress = window.userProgress[v.id] || { wrongCount: 0 };
+                const li = document.createElement("li");
+                li.className = "bg-white p-5 rounded-[28px] border border-slate-200/80 shadow-sm flex flex-col relative group";
+                li.setAttribute("data-id", v.id);
+
+                // 【優化點】例句打破卡片內縮，獨立於下方，獲得 100% 滿版水平寬度（不破壞原本上方底框大小）
+                const exampleHTML = v.example 
+                    ? `<div class="w-[calc(100%+1rem)] -ml-2 mt-3.5">
+                        <p class="text-xs text-indigo-600 italic bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/40 block w-full leading-relaxed">Ex: ${v.example}</p>
+                       </div>` 
+                    : '';
+
+                const manageButtonsHTML = window.manualSortEnabled 
+                    ? `
+                    <div class="flex gap-1.5 shrink-0">
+                        <button onclick="window.openEditModal('${v.id}')" class="text-[10px] bg-slate-100 font-bold px-2.5 py-1 rounded-md text-slate-500 active:bg-slate-200">編輯</button>
+                        <button onclick="window.deleteWordAction('${v.id}')" class="text-[10px] bg-rose-50 font-bold px-2.5 py-1 rounded-md text-rose-500 active:bg-rose-100">刪除</button>
+                        <span class="drag-handle cursor-grab active:cursor-grabbing text-slate-300 px-1 text-base">\u2630</span>
+                    </div>
+                    `
+                    : '';
+
+                // 【優化點】中文意思套用 text-indigo-600（深靛藍）與 font-black（極粗體）
+                li.innerHTML = `
+                    <div class="w-full">
+                        <div class="flex justify-between items-start w-full">
+                            <div class="flex-1 pr-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xs font-black bg-slate-100 px-2 py-0.5 rounded-md text-slate-500">${v.lesson}</span>
+                                    <span class="text-xs font-black bg-indigo-50 px-2 py-0.5 rounded-md text-indigo-500">${v.type}</span>
+                                    ${progress.wrongCount > 0 ? `<span class="text-[10px] bg-rose-500 text-white font-extrabold px-1.5 py-0.5 rounded-full">\ud83d\udd25 弱點 ${progress.wrongCount}次</span>` : ''}
+                                </div>
+                                <h3 class="text-xl font-black text-slate-900 tracking-tight mt-1.5">${v.word}</h3>
+                                <p class="text-xs text-slate-400 font-medium">${v.reading || ''}</p>
+                                <p class="text-sm font-black text-indigo-600 mt-1.5">${v.meaning}</p>
+                            </div>
+                            
+                            <div class="flex flex-col items-end gap-3 justify-between min-h-[60px] shrink-0">
+                                ${manageButtonsHTML}
+                                <button onclick="window.speakAction('${v.word?.replace(/'/g, "\\'")}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 p-3 rounded-full shadow-sm active:scale-90 transition-all">
+                                    \ud83d\udd0a
+                                </button>
+                            </div>
+                        </div>
+                        ${exampleHTML}
+                    </div>
+                `;
+                listEl.appendChild(li);
+            });
+
+            if (window.manualSortEnabled && typeof window.initSortable === 'function') {
+                window.initSortable();
+            }
+        };
+
+        // 初始化拖曳排序
+        window.initSortable = () => {
+            const listEl = document.getElementById("vocab-list");
+            if (!listEl) return;
+            if (sortableInstance) sortableInstance.destroy();
+
+            sortableInstance = new Sortable(listEl, {
+                handle: '.drag-handle',
+                animation: 150,
+                onEnd: function () {
+                    const rows = listEl.querySelectorAll("li");
+                    rows.forEach((row, index) => {
+                        const id = row.getAttribute("data-id");
+                        const word = window.vocabs.find(v => v.id === id);
+                        if (word) word.sortOrder = index;
+                    });
+                }
+            });
+        };
+
+        // 發音功能
+        window.speakAction = (text) => {
+            if (!text) return;
+            const synth = window.speechSynthesis;
+            if (synth.speaking) synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            synth.speak(utterance);
+        };
+
+        // 開啟新增視窗
+        window.openAddModal = () => {
+            window.editingWordId = null;
+            document.getElementById("modal-title").innerText = "新增單字";
+            document.getElementById("input-lesson").value = window.currentBook === 'note' ? "個人筆記" : "L1";
+            document.getElementById("input-type").value = "";
+            document.getElementById("input-word").value = "";
+            document.getElementById("input-reading").value = "";
+            document.getElementById("input-meaning").value = "";
+            document.getElementById("input-example").value = "";
+            document.getElementById("word-modal").classList.remove("hidden");
+        };
+
+        // 開啟編輯視窗
+        window.openEditModal = (id) => {
+            const word = window.vocabs.find(v => v.id === id);
+            if (!word) return;
+            window.editingWordId = id;
+            document.getElementById("modal-title").innerText = "編輯單字";
+            document.getElementById("input-lesson").value = word.lesson;
+            document.getElementById("input-type").value = word.type;
+            document.getElementById("input-word").value = word.word;
+            document.getElementById("input-reading").value = word.reading;
+            document.getElementById("input-meaning").value = word.meaning;
+            document.getElementById("input-example").value = word.example || "";
+            document.getElementById("word-modal").classList.remove("hidden");
+        };
+
+        // 關閉視窗
+        window.closeWordModal = () => {
+            document.getElementById("word-modal").classList.add("hidden");
+        };
+
+        // 儲存（新增或修改）動作
+        window.saveWordAction = () => {
+            const lesson = document.getElementById("input-lesson").value.trim();
+            const type = document.getElementById("input-type").value.trim();
+            const word = document.getElementById("input-word").value.trim();
+            const reading = document.getElementById("input-reading").value.trim();
+            const meaning = document.getElementById("input-meaning").value.trim();
+            const example = document.getElementById("input-example").value.trim();
+
+            if (!lesson || !word || !meaning) {
+                alert("請填寫 課別、單字 與 中文意思！");
+                return;
+            }
+
+            if (window.editingWordId) {
+                // 修改
+                const index = window.vocabs.findIndex(v => v.id === window.editingWordId);
+                if (index !== -1) {
+                    window.vocabs[index] = { ...window.vocabs[index], lesson, type, word, reading, meaning, example };
+                }
+            } else {
+                // 新增
+                const newId = String(Date.now());
+                window.vocabs.push({
+                    id: newId,
+                    uid: currentUser,
+                    lesson,
+                    type,
                     word,
                     reading,
                     meaning,
-                    example, // 💡 2. 將例句同步儲存至 Firebase 雲端資料庫
-                    lesson: window.selectedNewLesson,
-                    type: window.selectedNewCat,
-                    timestamp: Date.now(),
-                    uid: window.selectedNewLesson === '個人筆記' ? currentUser : "",
-                    sortOrder: window.vocabs.length
+                    example,
+                    sortOrder: window.vocabs.length + 1
                 });
-                
-                // 💡 3. 儲存成功後，把所有輸入框（包含例句）清空
-                document.getElementById("word").value = "";
-                document.getElementById("reading").value = "";
-                document.getElementById("meaning").value = "";
-                document.getElementById("word-example").value = ""; 
-                
-                window.showToast("🎉 成功新增多益單字！");
-                window.checkDuplicate();
-            } catch(e) {
-                alert("儲存失敗");
+            }
+
+            window.closeWordModal();
+            window.renderList();
+        };
+
+        // 刪除單字
+        window.deleteWordAction = (id) => {
+            if (confirm("確定要刪除這個單字嗎？")) {
+                window.vocabs = window.vocabs.filter(v => v.id !== id);
+                window.renderList();
             }
         };
+
+        // 初始化執行
+        document.addEventListener("DOMContentLoaded", () => {
+            window.renderList();
+        });
+    </script>
+</body>
+</html>
