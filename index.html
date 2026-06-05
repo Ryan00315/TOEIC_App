@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kingtex TOEICNote</title>
+    <title>TOEIC Note</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <style>
@@ -314,11 +314,12 @@
                 return;
             }
         
-            const readingEl = document.getElementById("reading"); // 將放入：[KK音標] ‧ 分音節
+            const readingEl = document.getElementById("reading"); 
             const meaningEl = document.getElementById("meaning");
+            // 新增：抓取你的輸入區塊或編輯區塊的例句輸入框（此處以新增/編輯欄位為例）
+            const exampleEl = document.getElementById("edit-example"); 
             const transBtn = document.getElementById("translate-btn-action");
         
-            // 快取機制
             if (window.translateCache[inputVal]) {
                 const cached = window.translateCache[inputVal];
                 if (readingEl) readingEl.value = cached.phonetic || "";
@@ -326,6 +327,8 @@
                     meaningEl.value = cached.chinese || "";
                     meaningEl.dispatchEvent(new Event("input", { bubbles: true }));
                 }
+                // 如果快取有例句就一同填入
+                if (exampleEl && cached.example) exampleEl.value = cached.example;
                 window.showToast("⚡ 使用快取數據");
                 return;
             }
@@ -337,48 +340,64 @@
             }
         
             try {
-                // 採用免費開源且無限制的網頁版 Google 翻譯與音標聯合解決方案（使用無須認證的萬用公用 API）
-                // 翻譯單字：英翻繁中
+                // 1. 翻譯單字：英翻繁中
                 const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(inputVal)}`);
                 const transData = await transRes.json();
                 const translatedText = transData[0][0][0] || "";
-
-                // 音標與音節查詢：這裡對接專門解析英文並生成音節/音標的免認證開源接口 (或降級純計算)
-                // 為了前端穩定性，我們採用廣泛使用的開源字典解析（若無後端，可經由後端代理，這裡模擬高效解析演算法，並取得美式發音音標）
+        
+                // 2. 音標與例句查詢
                 const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(inputVal)}`);
                 let phoneticText = "";
                 let syllableText = inputVal; 
-
+                let exampleText = ""; // 用來存取例句
+        
                 if (dictRes.ok) {
                     const dictData = await dictRes.json();
                     phoneticText = dictData[0]?.phonetic || dictData[0]?.phonetics?.find(p => p.text)?.text || "";
+                    
+                    // 💡 關鍵優化：從 API 回傳的定義中尋找 example 例句
+                    const meanings = dictData[0]?.meanings || [];
+                    for (const m of meanings) {
+                        const definitionWithExample = m.definitions?.find(d => d.example);
+                        if (definitionWithExample) {
+                            exampleText = definitionWithExample.example;
+                            break; // 找到第一個有例句的就跳出
+                        }
+                    }
                 }
-
-                // 精確演算法：若查不到音標則自動由音調拼讀規則做降級相容，並利用Hyphen規則做英文音節切分
+        
                 if (!phoneticText) phoneticText = `/${inputVal}/`;
                 
-                // 簡單高效的英文音節切分斷字模擬邏輯 (劃分出如 ac-com-mo-da-tion)
+                // 英文音節切分斷字
                 syllableText = inputVal.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '')
                                         .replace(/^y/, '')
                                         .match(/[aeiouy]{1,2}[^aeiouy]*/g);
                 const processedSyllables = syllableText ? syllableText.join("-") : inputVal;
-
                 const finalPhoneticAndSyllable = `${phoneticText} 【${processedSyllables}】`;
-
+        
+                // 3. 將資料渲染回畫面
                 if (readingEl) readingEl.value = finalPhoneticAndSyllable;
                 if (meaningEl) {
                     meaningEl.value = translatedText;
                     meaningEl.dispatchEvent(new Event("input", { bubbles: true }));
                 }
-
+                
+                // 💡 如果有抓到 API 的英文例句，自動填入對應的欄位
+                if (exampleText) {
+                    // 如果你在新增面板也加了 <textarea id="word-example"></textarea>，可以改填那裡
+                    const targetExampleField = document.getElementById("word-example") || document.getElementById("edit-example");
+                    if (targetExampleField) targetExampleField.value = exampleText;
+                }
+        
                 // 儲存至快取
                 window.translateCache[inputVal] = {
                     phonetic: finalPhoneticAndSyllable,
-                    chinese: translatedText
+                    chinese: translatedText,
+                    example: exampleText // 快取例句
                 };
                 localStorage.setItem("toeic_translate_cache_v1", JSON.stringify(window.translateCache));
-                window.showToast("✨ 免費查詢成功！");
-
+                window.showToast("✨ 免費查詢成功（含例句）！");
+        
             } catch (e) {
                 console.error("翻譯或音標獲取失敗：", e);
                 window.showToast("❌ 網路請求失敗，請手動輸入");
