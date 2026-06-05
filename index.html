@@ -70,7 +70,7 @@
             </div>
 
             <div class="flex items-center justify-between gap-1">
-                <h1 class="text-lg font-black text-indigo-600 tracking-tighter shrink-0">Kingtex TOEICNote</h1>
+                <h1 class="text-lg font-black text-indigo-600 tracking-tighter shrink-0">TOEIC Note</h1>
                 <div class="flex items-center gap-1">
                     <button id="export-btn" onclick="window.exportWords()" class="text-[9px] bg-slate-100 px-2 py-2 rounded-full font-bold hidden">匯出</button>
                     <button id="bulk-example-btn" onclick="window.bulkFillExamples()" class="text-[9px] bg-slate-100 px-2 py-2 rounded-full font-bold hidden">補例句</button>
@@ -110,6 +110,9 @@
             <div class="relative mb-4 text-left">
                 <input id="meaning" type="text" placeholder="中文意思 (自動翻譯)" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 pr-36 rounded-2xl outline-none text-sm border focus:border-indigo-300">
                 <button id="translate-btn-action" onclick="window.autoTranslate()" class="absolute right-2 top-2 bottom-2 bg-white text-[10px] px-2 rounded-xl border border-slate-200 font-bold text-slate-500 transition-all">👉 免費 Google 翻譯</button>
+            </div>
+            <div class="mb-4 text-left">
+                <textarea id="word-example" placeholder="多益商務例句 (自動翻譯時會自動填入)" class="w-full bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300 h-20 resize-none"></textarea>
             </div>
             <div class="flex gap-2 mb-3">
                 <button id="new-book1-tab" onclick="window.setNewBookTab(1)" class="flex-1 border py-1.5 rounded-xl text-xs font-bold transition-all">核心字彙</button>
