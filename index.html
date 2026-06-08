@@ -786,9 +786,9 @@
                        </div>`
                     : '';
 
-                // 【修改點 2】將主畫面的單字卡例句框全面向右拉寬 (寬度拉滿並切齊上排區塊)
+                // 【修改點 2】修正拉寬邏輯：將例句獨立到大容器最外層，藉此完全排除 pr-2 側邊擠壓，徹底滿寬右拉
                 const exampleHTML = v.example 
-                    ? `<div class="w-full mt-3.5">
+                    ? `<div class="w-[calc(100%+1rem)] -ml-2 mt-3.5 block">
                         <p class="text-xs text-slate-400 font-medium bg-slate-50 p-3 rounded-xl border border-slate-200/50 block w-full leading-relaxed">${v.example}</p>
                        </div>` 
                     : '';
@@ -798,39 +798,41 @@
                 const reviewBadgeHTML = isNeedReviewNow ? `<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-md font-black">⏳ 該複習</span>` : '';
 
                 li.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1 pr-2">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-md font-bold uppercase">${v.type||'n.'}</span>
-                                <span class="text-xs text-slate-400 font-bold tracking-tight">${v.lesson||'未分類'}</span>
-                                <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded-md">錯 ${prog.wrongCount||0} 次</span>
-                                ${tagHTML}
-                                ${reviewBadgeHTML}
+                    <div class="w-full flex flex-col">
+                        <div class="flex justify-between items-start w-full">
+                            <div class="flex-1 pr-2">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-md font-bold uppercase">${v.type||'n.'}</span>
+                                    <span class="text-xs text-slate-400 font-bold tracking-tight">${v.lesson||'未分類'}</span>
+                                    <span class="text-[9px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded-md">錯 ${prog.wrongCount||0} 次</span>
+                                    ${tagHTML}
+                                    ${reviewBadgeHTML}
+                                </div>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <h3 class="text-xl font-black text-slate-900 tracking-tight">${v.word}</h3>
+                                    <button onclick="window.speakAction('${v.word.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-slate-600 p-1">
+                                        <i class="fa-solid fa-volume-high text-xs"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-slate-400 font-medium">${v.reading || ''}</p>
+                                <p class="text-base font-black text-orange-500 mt-1.5">${v.meaning}</p>
+                                ${collocationHTML}
                             </div>
-                            <div class="flex items-center gap-1.5 mt-1">
-                                <h3 class="text-xl font-black text-slate-900 tracking-tight">${v.word}</h3>
-                                <button onclick="window.speakAction('${v.word.replace(/'/g, "\\'")}')" class="text-slate-400 hover:text-slate-600 p-1">
-                                    <i class="fa-solid fa-volume-high text-xs"></i>
+                            
+                            <div class="flex flex-col gap-1.5 items-end shrink-0">
+                                <button onclick="window.markEbbinghausMemory('${v.id}', true)" class="text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${prog.isMastered ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'}">
+                                    <i class="fa-solid fa-check mr-0.5"></i> 已牢記
                                 </button>
-                            </div>
-                            <p class="text-xs text-slate-400 font-medium">${v.reading || ''}</p>
-                            <p class="text-base font-black text-orange-500 mt-1.5">${v.meaning}</p>
-                            ${collocationHTML}
-                            ${exampleHTML}
-                        </div>
-                        
-                        <div class="flex flex-col gap-1.5 items-end shrink-0">
-                            <button onclick="window.markEbbinghausMemory('${v.id}', true)" class="text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${prog.isMastered ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'}">
-                                <i class="fa-solid fa-check mr-0.5"></i> 已牢記
-                            </button>
-                            <button onclick="window.markEbbinghausMemory('${v.id}', false)" class="text-[10px] font-bold px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100/70 hover:bg-rose-100 transition-all">
-                                <i class="fa-solid fa-rotate-right mr-0.5"></i> 忘記/加強
-                            </button>
-                            <div class="flex gap-2 mt-2">
-                                <button onclick="window.openEditModal('${v.id}')" class="text-slate-400 hover:text-indigo-600 text-xs p-1"><i class="fa-regular fa-pen-to-square"></i></button>
-                                <button onclick="window.deleteWordAction('${v.id}')" class="text-slate-300 hover:text-rose-500 text-xs p-1"><i class="fa-regular fa-trash-can"></i></button>
+                                <button onclick="window.markEbbinghausMemory('${v.id}', false)" class="text-[10px] font-bold px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100/70 hover:bg-rose-100 transition-all">
+                                    <i class="fa-solid fa-rotate-right mr-0.5"></i> 忘記/加強
+                                </button>
+                                <div class="flex gap-2 mt-2">
+                                    <button onclick="window.openEditModal('${v.id}')" class="text-slate-400 hover:text-indigo-600 text-xs p-1"><i class="fa-regular fa-pen-to-square"></i></button>
+                                    <button onclick="window.deleteWordAction('${v.id}')" class="text-slate-300 hover:text-rose-500 text-xs p-1"><i class="fa-regular fa-trash-can"></i></button>
+                                </div>
                             </div>
                         </div>
+                        ${exampleHTML}
                     </div>
                 `;
                 listEl.appendChild(li);
@@ -852,7 +854,7 @@
                 else if (currentProg.interval === 7) nextInterval = 15;
                 else {
                     nextInterval = 30;
-                    masteredStatus = true;
+                    masterStatus = true;
                 }
                 window.showToast("👍 記憶天數拉長，繼續保持！");
             } else {
@@ -1151,10 +1153,9 @@
         window.setQuizType = (m) => {
             window.quizMode = m;
             document.getElementById("modeStdBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='standard'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
-            document.getElementById("modeHearBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='hearing'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border-slate-600'}`;
+            document.getElementById("modeHearBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='hearing'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
             document.getElementById("modeChoiceBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='choice'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
             
-            // 【修改點 1】解除弱點字隱藏限制，讓「單字卡模式」與「聽力模式」也能在設定介面中進行打勾選擇
             document.getElementById("choice-sub-options").classList.remove("hidden");
             
             const subModes = document.getElementById("subModeJPCH").parentElement;
@@ -1180,7 +1181,6 @@
 
             let pool = window.vocabs.filter(v => v.book === window.currentBook && allowedLessons.includes(v.lesson));
             
-            // 【修改點 1】不論是 choice、standard 還是 hearing 模式，只要勾選就對題型池強制啟用弱點複習過濾
             const onlyWeak = document.getElementById("weak-choice-mode").checked;
             if(onlyWeak) {
                 pool = pool.filter(v => (window.userProgress[v.id]?.wrongCount || 0) > 0);
