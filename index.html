@@ -786,7 +786,7 @@
                        </div>`
                     : '';
 
-                // 【修改點 3】例句加寬 w-[calc(100%+1rem)] -ml-2，且移除 Ex: 前綴字樣
+                // 【修改點 2】將底下的單字卡例句底框寬度拉寬 (w-[calc(100%+1rem)] -ml-2)
                 const exampleHTML = v.example 
                     ? `<div class="w-[calc(100%+1rem)] -ml-2 mt-3.5">
                         <p class="text-xs text-slate-400 font-medium bg-slate-50 p-3 rounded-xl border border-slate-200/50 block w-full leading-relaxed">${v.example}</p>
@@ -797,7 +797,6 @@
                 const isNeedReviewNow = prog.nextReview <= now && !prog.isMastered;
                 const reviewBadgeHTML = isNeedReviewNow ? `<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-md font-black">⏳ 該複習</span>` : '';
 
-                // 【修改點 1】將錯幾次標籤移到單字卡上方 lesson 與 type 的順序後面
                 li.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div class="flex-1 pr-2">
@@ -1144,6 +1143,10 @@
             document.getElementById("quiz-overlay").classList.remove("hidden");
             document.getElementById("quiz-setup").classList.remove("hidden");
             document.getElementById("quiz-content").classList.add("hidden");
+            
+            // 【優化點 1】打開設定視窗時，確保在任何模式下弱點字選擇框均可操作
+            document.getElementById("choice-sub-options").classList.remove("hidden");
+            window.setQuizType(window.quizMode);
         };
 
         window.setQuizType = (m) => {
@@ -1151,8 +1154,19 @@
             document.getElementById("modeStdBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='standard'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
             document.getElementById("modeHearBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='hearing'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
             document.getElementById("modeChoiceBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='choice'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
-            if(m === 'choice') document.getElementById("choice-sub-options").classList.remove("hidden");
-            else document.getElementById("choice-sub-options").classList.add("hidden");
+            
+            // 【修改點 1】不論是選擇題、單字卡或聽力模式，弱點字控制欄位都保持 block 顯示狀態
+            document.getElementById("choice-sub-options").classList.remove("hidden");
+            
+            // 英選中、中選英題型只在 choice 模式時才向用戶提示，否則在標準或聽力模式下淡化或不影響
+            const subModes = document.getElementById("subModeJPCH").parentElement;
+            if (m === 'choice') {
+                subModes.style.opacity = "1";
+                subModes.style.pointerEvents = "auto";
+            } else {
+                subModes.style.opacity = "0";
+                subModes.style.pointerEvents = "none";
+            }
         };
 
         window.setChoiceSub = (s) => {
@@ -1167,8 +1181,10 @@
             if(allowedLessons.length === 0) { alert("請至少勾選一個單元範圍"); return; }
 
             let pool = window.vocabs.filter(v => v.book === window.currentBook && allowedLessons.includes(v.lesson));
+            
+            // 【修改點 1】解鎖限制！現在不限於 choice，不論 standard 還是 hearing 模式，只要打勾就強制執行弱點過濾
             const onlyWeak = document.getElementById("weak-choice-mode").checked;
-            if(window.quizMode === 'choice' && onlyWeak) {
+            if(onlyWeak) {
                 pool = pool.filter(v => (window.userProgress[v.id]?.wrongCount || 0) > 0);
             }
 
