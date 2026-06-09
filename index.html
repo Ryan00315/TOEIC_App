@@ -332,10 +332,10 @@
         window.userProgress = {};
         window.selectedLessons = [];
         window.selectedTypes = [];
-        window.currentBook = '0-2k'; // 【修改點 2】預設書冊為 0-2k
+        window.currentBook = '0-2k'; // 【修改點 1】預設書冊改為 0-2k
         window.newWordBook = '0-2k';
         window.selectedNewCat = 'n.';
-        window.selectedNewLesson = 'A'; // 【修改點 3】預設單元為 A
+        window.selectedNewLesson = 'A'; // 【修改點 2】預設分類改為 A
         window.sortOrder = 'asc';
         window.manualSortEnabled = false;
         window.translateCache = JSON.parse(localStorage.getItem("toeic_translate_cache_v1") || "{}");
@@ -352,6 +352,7 @@
         window.selectedEditLesson = 'A';
         window.selectedEditCat = 'n.';
 
+        // 功能 2 & 3: 新增控制變數
         window.isReviewFilterActive = false;
         window.isAudioLooping = false;
         window.audioTimer = null;
@@ -360,10 +361,10 @@
         let currentUser = localStorage.getItem('toeic_user_shared') || '訪客';
         let userHistory = JSON.parse(localStorage.getItem('toeic_user_history') || '["訪客"]');
 
-        // 【修改點 4】詞性層的精確排序及擴充
+        // 【修改點 4】詞性分層項目與排序精確配置
         const LESSON_TYPES = ['n.', 'pron.', 'v.', 'adv.', 'adj.', 'prep.', 'conj.', 'det.', 'int.', 'num', 'phr.', 'abbr.'];
         
-        // 【修改點 3】建立 A-Z 的 26 分類陣列
+        // 【修改點 3】配置 26 字母為預設陣列
         const ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
         const BOOK_MAP = {
             '0-2k': ALPHABETS,
@@ -384,7 +385,7 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
         };
 
-        // 監聽單字與進度數據
+        // 監聽單字與進度數據 (完全恢復最原始變數與帳號綁定處理)
         onSnapshot(query(vocabsCol, orderBy("order", "asc")), (snapshot) => {
             window.vocabs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             window.renderFilters();
@@ -566,7 +567,7 @@
                 window.showToast("❌ 網路請求失敗，請手動輸入");
             } finally {
                 window.isTranslating = false;
-                if (transBtn) { transBtn.disabled = false; transBtn.innerText = "👉 免費 Google 翻譯"; }
+                if (transBtn) { font-bold; transBtn.disabled = false; transBtn.innerText = "👉 免費 Google 翻譯"; }
             }
         };
 
@@ -689,7 +690,7 @@
                     book: window.newWordBook,
                     lesson: window.selectedNewLesson,
                     type: window.selectedNewCat,
-                    uid: currentUser, // 保留儲存使用者 uid 用以區分個人筆記
+                    uid: currentUser, // 100% 完整保留原本新增單字時寫入的使用者識別標籤
                     order: orderNum
                 });
                 window.showToast("🎉 成功加入多益字庫！");
@@ -706,15 +707,7 @@
             }
         };
 
-        window.switchBook = (b) => {
-            window.currentBook = b;
-            window.selectedLessons = [];
-            window.selectedTypes = [];
-            window.renderFilters();
-            window.renderList();
-        };
-
-        // 【修改點 5】摺疊篩選器顯示與隱藏功能切換，並同步調整按鈕上的文字
+        // 【修改點 5】收合折疊控制：控制單元字母層和詞性層，並動態翻轉按鈕文字
         window.toggleFilterVisibility = () => {
             const filterGroup = document.getElementById("dynamic-filter-group");
             const toggleBtn = document.getElementById("filter-toggle-btn");
@@ -728,12 +721,12 @@
         };
 
         window.renderFilters = () => {
-            // 【修改點 1 & 2】還原第一書冊階層的全新高亮與切換對齊
+            // 【修改點 1 & 2】還原第一書冊階層的全新高亮與切換對齊，完全取代原本的「核心字彙」
             const books = ['0-2k', '2-5k', 'TOEIC', 2, 'note'];
             books.forEach(b => {
                 const el = document.getElementById(b === 2 ? 'book2-btn' : b === 'note' ? 'book-note-btn' : `book-${b}-btn`);
                 if (el) {
-                    el.className = `border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0 text-center ${window.currentBook === b ? (b === 'note' ? 'note-active' : 'lesson-active') : 'bg-white text-slate-600'}`;
+                    el.className = `flex-1 border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0 text-center ${window.currentBook === b ? (b === 'note' ? 'note-active' : 'lesson-active') : 'bg-white text-slate-600'}`;
                 }
             });
 
@@ -1016,8 +1009,6 @@
             window.executeAudioLoop();
         };
 
-        window.navigator = () => {};
-
         window.toggleSort = () => {
             if(window.manualSortEnabled) return;
             window.sortOrder = window.sortOrder === 'asc' ? 'desc' : 'asc';
@@ -1191,6 +1182,33 @@
             document.getElementById("quiz-overlay").classList.remove("hidden");
             document.getElementById("quiz-setup").classList.remove("hidden");
             document.getElementById("quiz-content").classList.add("hidden");
+            
+            document.getElementById("choice-sub-options").classList.remove("hidden");
+            window.setQuizType(window.quizMode);
+        };
+
+        window.setQuizType = (m) => {
+            window.quizMode = m;
+            document.getElementById("modeStdBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='standard'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
+            document.getElementById("modeHearBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='hearing'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
+            document.getElementById("modeChoiceBtn").className = `py-3 rounded-xl text-xs font-bold ${m==='choice'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
+            
+            document.getElementById("choice-sub-options").classList.remove("hidden");
+            
+            const subModes = document.getElementById("subModeJPCH").parentElement;
+            if (m === 'choice') {
+                subModes.style.opacity = "1";
+                subModes.style.pointerEvents = "auto";
+            } else {
+                subModes.style.opacity = "0";
+                subModes.style.pointerEvents = "none";
+            }
+        };
+
+        window.setChoiceSub = (s) => {
+            window.choiceSub = s;
+            document.getElementById("subModeJPCH").className = `flex-1 py-3 rounded-xl text-xs font-bold ${s==='en-ch'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
+            document.getElementById("subModeCHJP").className = `flex-1 py-3 rounded-xl text-xs font-bold ${s==='ch-en'?'bg-indigo-600 border border-indigo-600':'bg-slate-700 text-slate-300 border border-slate-600'}`;
         };
 
         window.startQuiz = () => {
@@ -1214,7 +1232,7 @@
 
             if(pool.length === 0) { alert("此範圍內沒有符合條件的單字可以測試！"); return; }
 
-            window.quizPool = pool.sort(() => Math.random() - 0.5);
+            window.quizPool = [...pool].sort(() => Math.random() - 0.5);
             window.remainingPool = [...window.quizPool];
 
             document.getElementById("quiz-setup").classList.add("hidden");
@@ -1238,6 +1256,9 @@
             if(inner) inner.classList.remove("is-flipped");
 
             document.getElementById("q-meaning-front").innerText = window.currentQuizWord.meaning;
+            document.getElementById("hear-icon").classList.add("hidden");
+            document.getElementById("q-meaning-front").classList.remove("hidden");
+
             document.getElementById("q-word-answer").innerText = window.currentQuizWord.word;
             document.getElementById("q-reading-back").innerText = window.currentQuizWord.reading || "";
             document.getElementById("q-meaning-back").innerText = window.currentQuizWord.meaning;
@@ -1247,16 +1268,189 @@
             document.getElementById("standard-actions").classList.add("hidden");
             document.getElementById("tap-to-reveal").classList.add("hidden");
 
+            const isSpelling = document.getElementById("spelling-mode").checked;
+
+            if(window.quizMode === 'hearing') {
+                document.getElementById("q-meaning-front").classList.add("hidden");
+                document.getElementById("hear-icon").classList.remove("hidden");
+                window.speakAction(window.currentQuizWord.word);
+            }
+
             if(window.quizMode === 'choice') {
                 document.getElementById("choice-area").classList.remove("hidden");
                 window.setupChoiceOptions();
+            } else if(isSpelling) {
+                document.getElementById("spelling-input-area").classList.remove("hidden");
+                const inputF = document.getElementById("spelling-input");
+                inputF.value = ""; inputF.focus();
+                document.getElementById("feedback-msg").innerText = "";
             } else {
                 document.getElementById("standard-actions").classList.remove("hidden");
                 document.getElementById("tap-to-reveal").classList.remove("hidden");
             }
         };
 
-        window.startImport = async () => {};
+        window.setupChoiceOptions = () => {
+            const correct = window.currentQuizWord;
+            let fallbacks = window.vocabs.filter(v => v.id !== correct.id);
+            if(fallbacks.length < 2) fallbacks = [{meaning:"錯誤干擾項A", word:"testa"}, {meaning:"錯誤干擾項B", word:"testb"}];
+            const shuffledFallbacks = fallbacks.sort(() => Math.random() - 0.5);
+            window.currentChoices = [correct, shuffledFallbacks[0], shuffledFallbacks[1]].sort(() => Math.random() - 0.5);
+
+            for(let i=0; i<3; i++) {
+                const btn = document.getElementById(`opt-${i}`);
+                btn.className = "option-btn bg-white/10 py-5 rounded-3xl font-bold text-base";
+                btn.disabled = false;
+                if(window.choiceSub === 'en-ch') {
+                    if(window.quizMode === 'hearing') {
+                        document.getElementById("q-meaning-front").classList.add("hidden");
+                        document.getElementById("hear-icon").classList.remove("hidden");
+                    } else {
+                        document.getElementById("q-meaning-front").innerText = correct.word;
+                    }
+                    btn.innerText = window.currentChoices[i].meaning;
+                } else {
+                    document.getElementById("q-meaning-front").innerText = correct.meaning;
+                    btn.innerText = window.currentChoices[i].word;
+                }
+            }
+        };
+
+        window.submitChoice = (idx) => {
+            const chosen = window.currentChoices[idx];
+            const isCorrect = chosen.id === window.currentQuizWord.id;
+            
+            for(let i=0; i<3; i++) {
+                const btn = document.getElementById(`opt-${i}`);
+                btn.disabled = true;
+                if(window.currentChoices[i].id === window.currentQuizWord.id) {
+                    btn.classList.add("opt-correct");
+                } else if(i === idx) {
+                    btn.classList.add("opt-wrong");
+                }
+            }
+
+            if(isCorrect) {
+                window.markEbbinghausMemory(window.currentQuizWord.id, true);
+                setTimeout(() => { window.nextQuizQuestion(); }, 1000);
+            } else {
+                window.markEbbinghausMemory(window.currentQuizWord.id, false);
+            }
+        };
+
+        window.quizPass = () => {
+            window.markEbbinghausMemory(window.currentQuizWord.id, true);
+            window.nextQuizQuestion();
+        };
+
+        window.quizFail = () => {
+            window.markEbbinghausMemory(window.currentQuizWord.id, false);
+            const inner = document.getElementById("quiz-card");
+            if(inner && !inner.classList.contains("is-flipped")) {
+                inner.classList.add("is-flipped");
+                window.speakAction(window.currentQuizWord.word);
+            } else {
+                window.nextQuizQuestion();
+            }
+        };
+
+        window.handleCardClick = (e) => {
+            if(e.target.closest('.audio-btn')) return;
+            const inner = document.getElementById("quiz-card");
+            if(inner) {
+                inner.classList.toggle("is-flipped");
+                if(inner.classList.contains("is-flipped")) {
+                    window.speakAction(window.currentQuizWord.word);
+                }
+            }
+        };
+
+        window.playCurrentWord = (e) => {
+            if(e) e.stopPropagation();
+            if(window.currentQuizWord) window.speakAction(window.currentQuizWord.word);
+        };
+
+        window.backToQuizSetup = () => {
+            document.getElementById("quiz-setup").classList.remove("hidden");
+            document.getElementById("quiz-content").classList.add("hidden");
+        };
+
+        document.addEventListener("keydown", (e) => {
+            const overlay = document.getElementById("quiz-overlay");
+            if(overlay && overlay.classList.contains("hidden")) return;
+            const isSpelling = document.getElementById("spelling-mode").checked;
+
+            if(isSpelling && document.activeElement === document.getElementById("spelling-input") && e.key === 'Enter') {
+                const inputVal = document.getElementById("spelling-input").value.trim().toLowerCase();
+                const correctVal = window.currentQuizWord.word.trim().toLowerCase();
+                const msg = document.getElementById("feedback-msg");
+                if(inputVal === correctVal) {
+                    msg.innerText = "🎯 拼寫完全正確！"; msg.className = "mt-2 text-[10px] font-bold h-5 text-emerald-400";
+                    window.markEbbinghausMemory(window.currentQuizWord.id, true);
+                    setTimeout(() => { window.nextQuizQuestion(); }, 1000);
+                } else {
+                    msg.innerText = `❌ 拼寫錯誤，正確應為: ${window.currentQuizWord.word}`; msg.className = "mt-2 text-[10px] font-bold h-5 text-rose-400";
+                    window.markEbbinghausMemory(window.currentQuizWord.id, false);
+                }
+                return;
+            }
+
+            if(!isSpelling && window.quizMode === 'standard') {
+                if(e.shiftKey && e.key === 'ArrowLeft') window.quizFail();
+                if(e.shiftKey && e.key === 'ArrowRight') window.quizPass();
+                if(e.key === ' ') { e.preventDefault(); window.handleCardClick(e); }
+            }
+        });
+
+        window.toggleImport = (show) => {
+            const el = document.getElementById("import-overlay");
+            if(show) el.classList.remove("hidden"); else el.classList.add("hidden");
+        };
+
+        window.startImport = async () => {
+            const text = document.getElementById("import-text").value.trim();
+            if(!text) return;
+            const lines = text.split("\n");
+            window.showToast(`🚀 開始匯入 ${lines.length} 筆資料...`);
+            let count = 0;
+            const batch = writeBatch(db);
+            let baseOrder = window.vocabs.length > 0 ? Math.max(...window.vocabs.map(v=>v.order||0)) : 0;
+
+            for(let line of lines) {
+                const parts = line.split(",");
+                if(parts.length >= 3) {
+                    count++;
+                    const w = parts[0].trim();
+                    const r = parts[1].trim();
+                    const m = parts[2].trim();
+                    const typeStr = parts[3] ? parts[3].trim() : "n.";
+                    const lessonStr = parts[4] ? parts[4].trim() : "A";
+
+                    const newDocRef = doc(collection(db, "toeic_vocabs"));
+                    batch.set(newDocRef, {
+                        word: w, reading: r, meaning: m, type: typeStr, lesson: lessonStr,
+                        book: window.currentBook, example: "", order: baseOrder + count
+                    });
+                }
+            }
+            try {
+                await batch.commit();
+                window.showToast(`✅ 成功批量匯入 ${count} 個多益單字！`);
+                window.toggleImport(false);
+                document.getElementById("import-text").value = "";
+            } catch(e) { console.error(e); alert("批量匯入失敗"); }
+        };
+
+        window.exportWords = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.vocabs, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `toeic_vocabs_backup_${Date.now()}.json`);
+            dlAnchorElem.click();
+        };
+
+        window.bulkFillExamples = () => {};
+
         window.renderUserHistory();
     </script>
 </body>
