@@ -115,11 +115,14 @@
                 <button id="book-note-btn" onclick="window.switchBook('note')" class="flex-1 border py-2 rounded-xl text-xs font-bold transition-all">個人筆記</button>
             </div>
             
-            <div class="w-full overflow-x-auto no-scrollbar pb-2" id="lesson-filter-container"></div>
-            <div class="w-full overflow-x-auto no-scrollbar pb-2 hidden" id="alphabet-filter-container"></div>
-            <div class="w-full overflow-x-auto no-scrollbar pb-2" id="type-filter"></div>
+            <div id="dynamic-filter-group" class="transition-all duration-300">
+                <div class="w-full overflow-x-auto no-scrollbar pb-2" id="lesson-filter-container"></div>
+                <div class="w-full overflow-x-auto no-scrollbar pb-2 hidden" id="alphabet-filter-container"></div>
+                <div class="w-full overflow-x-auto no-scrollbar pb-2" id="type-filter"></div>
+            </div>
             
             <div class="flex gap-2">
+                <button onclick="window.toggleFilterVisibility()" class="bg-white border border-slate-200 px-3 rounded-2xl text-xs font-bold text-slate-500 shadow-sm shrink-0 whitespace-nowrap">👁️ 篩選器</button>
                 <input type="text" id="searchInput" oninput="window.renderList()" placeholder="🔍 搜尋多益單字庫..." class="flex-1 p-3 rounded-2xl bg-white border border-slate-200 outline-none text-sm shadow-inner">
                 <button id="sort-btn" onclick="window.toggleSort()" class="bg-white border border-slate-200 px-4 rounded-2xl text-[13px] font-bold text-slate-400 shadow-sm">排序↑</button>
             </div>
@@ -323,13 +326,13 @@
         window.vocabs = [];
         window.userProgress = {};
         window.selectedLessons = [];
-        window.selectedAlphabets = []; // 【新增狀態】紀錄選擇的 A-Z 字母篩選
+        window.selectedAlphabets = []; 
         window.selectedTypes = [];
         window.currentBook = 1;
         window.newWordBook = 1;
         window.selectedNewCat = 'n.';
         window.selectedNewLesson = '0-2k';
-        window.selectedNewAlphabet = 'A'; // 新增單字預設字母
+        window.selectedNewAlphabet = 'A'; 
         window.sortOrder = 'asc';
         window.manualSortEnabled = false;
         window.translateCache = JSON.parse(localStorage.getItem("toeic_translate_cache_v1") || "{}");
@@ -355,11 +358,11 @@
         let currentUser = localStorage.getItem('toeic_user_shared') || '訪客';
         let userHistory = JSON.parse(localStorage.getItem('toeic_user_history') || '["訪客"]');
 
-        // 【修改點 4】詞性分類順序重整
+        // 詞性層排序
         const LESSON_TYPES = ['n.', 'pron.', 'v.', 'adv.', 'adj.', 'prep.', 'conj.', 'det.', 'int.', 'num', 'phr.', 'abbr.'];
-        
-        // 【修改點 2 & 3】定義各書冊分類與 26 字母表
         const ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        
+        // 核心字彙分層：0-2k、2-5k、TOEIC、個人筆記
         const BOOK_MAP = {
             1: ["0-2k", "2-5k", "TOEIC", "個人筆記"],
             2: ["一般商務", "辦公行政", "金融預算", "行銷銷售", "科技研發", "生產工廠"],
@@ -644,7 +647,6 @@
                 lessonContainer.appendChild(btn);
             });
 
-            // 【修改點 3 & 5】新增單字面板也連動 A-Z 字母
             const newAlphabetContainer = document.getElementById("new-alphabet-container");
             newAlphabetContainer.innerHTML = "";
             if (window.newWordBook === 1 && window.selectedNewLesson !== "個人筆記") {
@@ -683,7 +685,6 @@
 
             const orderNum = window.vocabs.length > 0 ? Math.max(...window.vocabs.map(v=>v.order||0)) + 1 : 1;
 
-            // 組合 A-Z 架構至單元欄位中
             let lessonStr = window.newWordBook === 'note' ? '個人筆記' : window.selectedNewLesson;
             if (window.newWordBook === 1 && lessonStr !== '個人筆記') {
                 lessonStr = `${lessonStr}_${window.selectedNewAlphabet}`;
@@ -719,13 +720,22 @@
         window.switchBook = (b) => {
             window.currentBook = b;
             window.selectedLessons = [];
-            window.selectedAlphabets = []; // 清空子母級
+            window.selectedAlphabets = []; 
             window.selectedTypes = [];
             window.renderFilters();
             window.renderList();
         };
 
-        // 【修改點 5】動態顯示與展開下級分類
+        // 【新增功能】一鍵手動摺疊與展開三個滾動分類篩選器
+        window.toggleFilterVisibility = () => {
+            const filterGroup = document.getElementById("dynamic-filter-group");
+            if(filterGroup.classList.contains("hidden")) {
+                filterGroup.classList.remove("hidden");
+            } else {
+                filterGroup.classList.add("hidden");
+            }
+        };
+
         window.renderFilters = () => {
             document.getElementById("book1-btn").className = `flex-1 border py-2 rounded-xl text-xs font-bold transition-all text-center ${window.currentBook === 1 ? 'lesson-active' : 'bg-white text-slate-600'}`;
             document.getElementById("book2-btn").className = `flex-1 border py-2 rounded-xl text-xs font-bold transition-all text-center ${window.currentBook === 2 ? 'lesson-active' : 'bg-white text-slate-600'}`;
@@ -743,17 +753,15 @@
                     if(active) {
                         window.selectedLessons = window.selectedLessons.filter(x => x !== l);
                     } else {
-                        // 採單選或多選皆可，此處維持既有陣列推入
                         window.selectedLessons.push(l);
                     }
-                    window.selectedAlphabets = []; // 重置字母層
+                    window.selectedAlphabets = []; 
                     window.renderFilters();
                     window.renderList();
                 };
                 lessonContainer.appendChild(btn);
             });
 
-            // 【修改點 3 & 5】手動/自動展開下下一階層 A-Z 字母表
             const alphabetContainer = document.getElementById("alphabet-filter-container");
             alphabetContainer.innerHTML = "";
             if (window.currentBook === 1 && window.selectedLessons.length > 0 && !window.selectedLessons.includes("個人筆記")) {
@@ -804,7 +812,6 @@
             let filtered = window.vocabs.filter(v => {
                 if(v.book !== window.currentBook) return false;
                 
-                // 拆解與對齊資料庫內帶有 A-Z 的單元標籤
                 let rawLesson = v.lesson || "未分類";
                 let currentPrefix = rawLesson.split("_")[0];
                 let currentLetter = rawLesson.split("_")[1] || "";
@@ -864,7 +871,6 @@
                 const isNeedReviewNow = prog.nextReview <= now && !prog.isMastered;
                 const reviewBadgeHTML = isNeedReviewNow ? `<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-md font-black">⏳ 該複習</span>` : '';
 
-                // 將顯示的標籤做優化轉換展示
                 let displayLesson = (v.lesson || "未分類").replace("_", " - ");
 
                 li.innerHTML = `
@@ -1466,7 +1472,7 @@
             }
             try {
                 await batch.commit();
-                window.showToast(`✅ 成功批量匯入 ${count} 個多益單字！`);
+                window.showToast("🎉 成功批量同步匯入！");
                 window.toggleImport(false);
                 document.getElementById("import-text").value = "";
             } catch(e) { console.error(e); alert("批量匯入失敗"); }
