@@ -699,7 +699,7 @@
                     book: window.newWordBook,
                     lesson: window.newWordBook === 'note' ? '個人筆記' : window.selectedNewLesson,
                     type: window.selectedNewCat,
-                    order: orderNum
+                    order: orderNum,
                     owner: (window.newWordBook === 'note') ? currentUser : 'public'
                 });
                 window.showToast("🎉 成功加入多益字庫！");
@@ -775,6 +775,7 @@
             let filtered = window.vocabs.filter(v => {
                 // 隔離邏輯：如果是個人筆記，必須是自己建立的；如果是其他本，全部公開
                 if (v.book === 'note' && v.owner !== currentUser) return false;
+                // 原有的篩選條件 (Lesson, Type, Search)
                 if(window.selectedLessons.length > 0 && !window.selectedLessons.includes(v.lesson)) return false;
                 if(window.selectedTypes.length > 0 && !window.selectedTypes.includes(v.type)) return false;
                 
