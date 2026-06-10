@@ -25,7 +25,7 @@
             display: flex;
             gap: 0.5rem;
             -webkit-overflow-scrolling: touch;
-            cursor: grab;
+            /* 移除 cursor: grab; 以解決移動端觸控滑動衝突 */
             flex-wrap: nowrap;
             white-space: nowrap;
             scroll-behavior: smooth;
