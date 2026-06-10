@@ -29,7 +29,6 @@
             flex-wrap: nowrap;
             white-space: nowrap;
             scroll-behavior: smooth;
-            width: 100%;
         }
         #input-section { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; }
         #input-section.show { max-height: 2000px; opacity: 1; margin-bottom: 1.5rem; }
@@ -110,21 +109,14 @@
         </div>
 
         <div class="max-w-md mx-auto px-4 pb-3">
-            <div class="flex gap-1.5 mb-2 overflow-x-auto no-scrollbar w-full">
-                <button id="book-0-2k-btn" onclick="window.switchBook('0-2k')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">0-2k</button>
-                <button id="book-2-5k-btn" onclick="window.switchBook('2-5k')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">2-5k</button>
-                <button id="book-toeic-btn" onclick="window.switchBook('TOEIC')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">TOEIC</button>
-                <button id="book2-btn" onclick="window.switchBook(2)" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">進階商務</button>
-                <button id="book-note-btn" onclick="window.switchBook('note')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">個人筆記</button>
+            <div class="flex gap-2 mb-2">
+                <button id="book1-btn" onclick="window.switchBook(1)" class="flex-1 border py-2 rounded-xl text-xs font-bold transition-all">核心字彙</button>
+                <button id="book2-btn" onclick="window.switchBook(2)" class="flex-1 border py-2 rounded-xl text-xs font-bold transition-all">進階商務</button>
+                <button id="book-note-btn" onclick="window.switchBook('note')" class="flex-1 border py-2 rounded-xl text-xs font-bold transition-all">個人筆記</button>
             </div>
-            
-            <div id="dynamic-filter-group" class="transition-all duration-300 hidden">
-                <div class="no-scrollbar pb-2 w-full overflow-x-auto" id="lesson-filter-container"></div>
-                <div id="type-filter" class="no-scrollbar pb-2 w-full overflow-x-auto"></div>
-            </div>
-
+            <div class="no-scrollbar pb-2" id="lesson-filter-container"></div>
+            <div id="type-filter" class="no-scrollbar pb-2"></div>
             <div class="flex gap-2">
-                <button id="filter-toggle-btn" onclick="window.toggleFilterVisibility()" class="bg-white border border-slate-200 px-3 rounded-2xl text-xs font-bold text-slate-500 shadow-sm shrink-0 whitespace-nowrap">👁️ 顯示篩選器</button>
                 <input type="text" id="searchInput" oninput="window.renderList()" placeholder="🔍 搜尋多益單字庫..." class="flex-1 p-3 rounded-2xl bg-white border border-slate-200 outline-none text-sm shadow-inner">
                 <button id="sort-btn" onclick="window.toggleSort()" class="bg-white border border-slate-200 px-4 rounded-2xl text-[13px] font-bold text-slate-400 shadow-sm">排序↑</button>
             </div>
@@ -163,15 +155,13 @@
                     <option value="行政辦公">#行政辦公</option>
                 </select>
             </div>
-            <div class="flex gap-1.5 mb-3 overflow-x-auto no-scrollbar w-full">
-                <button id="new-book-0-2k-tab" onclick="window.setNewBookTab('0-2k')" class="border py-1.5 px-3 rounded-xl text-xs font-bold transition-all shrink-0">0-2k</button>
-                <button id="new-book-2-5k-tab" onclick="window.setNewBookTab('2-5k')" class="border py-1.5 px-3 rounded-xl text-xs font-bold transition-all shrink-0">2-5k</button>
-                <button id="new-book-toeic-tab" onclick="window.setNewBookTab('TOEIC')" class="border py-1.5 px-3 rounded-xl text-xs font-bold transition-all shrink-0">TOEIC</button>
-                <button id="new-book2-tab" onclick="window.setNewBookTab(2)" class="border py-1.5 px-3 rounded-xl text-xs font-bold transition-all shrink-0">進階商務</button>
-                <button id="new-note-tab" onclick="window.setNewBookTab('note')" class="border py-1.5 px-3 rounded-xl text-xs font-bold transition-all shrink-0">個人筆記</button>
+            <div class="flex gap-2 mb-3">
+                <button id="new-book1-tab" onclick="window.setNewBookTab(1)" class="flex-1 border py-1.5 rounded-xl text-xs font-bold transition-all">核心字彙</button>
+                <button id="new-book2-tab" onclick="window.setNewBookTab(2)" class="flex-1 border py-1.5 rounded-xl text-xs font-bold transition-all">進階商務</button>
+                <button id="new-note-tab" onclick="window.setNewBookTab('note')" class="flex-1 border py-1.5 rounded-xl text-xs font-bold transition-all">個人筆記</button>
             </div>
-            <div id="new-lesson-container" class="no-scrollbar pb-3 mb-2 w-full overflow-x-auto"></div>
-            <div id="new-category-picker" class="no-scrollbar mb-6 w-full overflow-x-auto"></div>
+            <div id="new-lesson-container" class="no-scrollbar pb-3 mb-2"></div>
+            <div id="new-category-picker" class="no-scrollbar mb-6"></div>
             <button id="submit-btn" onclick="window.submitNewWord()" class="w-3/4 mx-auto bg-slate-900 text-white py-3 rounded-2xl font-bold shadow-xl block text-sm">儲存到單字冊</button>
         </section>
         <ul id="vocab-list" class="space-y-3 mt-4"></ul>
@@ -273,15 +263,13 @@
                     <option value="行銷銷售">#行銷銷售</option>
                     <option value="行政辦公">#行政辦公</option>
                 </select>
-                <div class="flex gap-1.5 overflow-x-auto no-scrollbar w-full">
-                    <button id="edit-book-0-2k-btn" onclick="window.setEditBook('0-2k')" class="border py-1.5 px-3 rounded-xl text-sm font-bold shrink-0">0-2k</button>
-                    <button id="edit-book-2-5k-btn" onclick="window.setEditBook('2-5k')" class="border py-1.5 px-3 rounded-xl text-sm font-bold shrink-0">2-5k</button>
-                    <button id="edit-book-toeic-btn" onclick="window.setEditBook('TOEIC')" class="border py-1.5 px-3 rounded-xl text-sm font-bold shrink-0">TOEIC</button>
-                    <button id="edit-book2-btn" onclick="window.setEditBook(2)" class="border py-1.5 px-3 rounded-xl text-sm font-bold shrink-0">進階商務</button>
-                    <button id="edit-book-note-btn" onclick="window.setEditBook('note')" class="border py-1.5 px-3 rounded-xl text-sm font-bold shrink-0">個人筆記</button>
+                <div class="flex gap-2">
+                    <button id="edit-book1-btn" onclick="window.setEditBook(1)" class="flex-1 border py-1.5 rounded-xl text-sm font-bold">核心字彙</button>
+                    <button id="edit-book2-btn" onclick="window.setEditBook(2)" class="flex-1 border py-1.5 rounded-xl text-sm font-bold">進階商務</button>
+                    <button id="edit-book-note-btn" onclick="window.setEditBook('note')" class="flex-1 border py-1.5 rounded-xl text-sm font-bold">個人筆記</button>
                 </div>
-                <div id="edit-lesson-container" class="no-scrollbar flex gap-2 overflow-x-auto pb-3"></div>
-                <div id="edit-category-picker" class="no-scrollbar flex gap-2 overflow-x-auto"></div>
+                <div id="edit-lesson-container" class="no-scrollbar pb-3"></div>
+                <div id="edit-category-picker" class="no-scrollbar"></div>
                 <div class="flex gap-3 pt-4 border-t mt-4">
                     <button onclick="document.getElementById('edit-modal').classList.add('hidden')" class="flex-1 bg-slate-100 py-3 rounded-2xl font-bold">取消</button>
                     <button onclick="window.saveWordEdit()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold">更新保存</button>
@@ -332,10 +320,10 @@
         window.userProgress = {};
         window.selectedLessons = [];
         window.selectedTypes = [];
-        window.currentBook = '0-2k'; // 【修改點 1】預設書冊改為 0-2k
-        window.newWordBook = '0-2k';
+        window.currentBook = 1;
+        window.newWordBook = 1;
         window.selectedNewCat = 'n.';
-        window.selectedNewLesson = 'A'; // 【修改點 2】預設分類改為 A
+        window.selectedNewLesson = '未分類';
         window.sortOrder = 'asc';
         window.manualSortEnabled = false;
         window.translateCache = JSON.parse(localStorage.getItem("toeic_translate_cache_v1") || "{}");
@@ -348,11 +336,10 @@
         window.currentChoices = [];
         window.vocabSortable = null;
         window.editingWordId = null;
-        window.editBookState = '0-2k';
-        window.selectedEditLesson = 'A';
+        window.editBookState = 1;
+        window.selectedEditLesson = '未分類';
         window.selectedEditCat = 'n.';
 
-        // 功能 2 & 3: 新增控制變數
         window.isReviewFilterActive = false;
         window.isAudioLooping = false;
         window.audioTimer = null;
@@ -361,20 +348,15 @@
         let currentUser = localStorage.getItem('toeic_user_shared') || '訪客';
         let userHistory = JSON.parse(localStorage.getItem('toeic_user_history') || '["訪客"]');
 
-        // 【修改點 4】詞性分層項目與排序精確配置
-        const LESSON_TYPES = ['n.', 'pron.', 'v.', 'adv.', 'adj.', 'prep.', 'conj.', 'det.', 'int.', 'num', 'phr.', 'abbr.'];
-        
-        // 【修改點 3】配置 26 字母為預設陣列
-        const ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        const LESSON_TYPES = ['n.', 'v.', 'adj.', 'adv.', 'phr.', '常考片語'];
         const BOOK_MAP = {
-            '0-2k': ALPHABETS,
-            '2-5k': ALPHABETS,
-            'TOEIC': ALPHABETS,
-            2: ["一般商務", "辦公行政", "金融預算", "行銷銷售", "科技研發", "生產工廠"],
-            'note': ALPHABETS
+            1: ["Part1", "Part2", "Part3", "Part4", "Part5", "Part6", "Part7", "未分類"],
+            2: ["一般商務", "辦公行政", "金融預算", "行銷銷售", "科技研發", "生產工廠"]
         };
         const LESSON_ORDER = [
-            ...ALPHABETS, "一般商務", "辦公行政", "金融預算", "行銷銷售", "科技研發", "生產工廠"
+            "Part1", "Part2", "Part3", "Part4", "Part5", "Part6", "Part7", "未分類",
+            "一般商務", "辦公行政", "金融預算", "行銷銷售", "科技研發", "生產工廠",
+            "個人筆記"
         ];
 
         // 提示語展示
@@ -385,7 +367,7 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
         };
 
-        // 監聽單字與進度數據 (完全恢復最原始變數與帳號綁定處理)
+        // 監聽單字與進度數據
         onSnapshot(query(vocabsCol, orderBy("order", "asc")), (snapshot) => {
             window.vocabs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             window.renderFilters();
@@ -567,7 +549,7 @@
                 window.showToast("❌ 網路請求失敗，請手動輸入");
             } finally {
                 window.isTranslating = false;
-                if (transBtn) { font-bold; transBtn.disabled = false; transBtn.innerText = "👉 免費 Google 翻譯"; }
+                if (transBtn) { transBtn.disabled = false; transBtn.innerText = "👉 免費 Google 翻譯"; }
             }
         };
 
@@ -630,24 +612,20 @@
 
         window.setNewBookTab = (b) => {
             window.newWordBook = b;
-            const lessons = BOOK_MAP[b] || ["A"];
-            window.selectedNewLesson = lessons[0] || "A";
+            const lessons = BOOK_MAP[b] || ["個人筆記"];
+            window.selectedNewLesson = lessons[0] || "個人筆記";
             window.checkDuplicate();
             window.renderNewFilters();
         };
 
         window.renderNewFilters = () => {
-            const tabs = ['0-2k', '2-5k', 'TOEIC', 2, 'note'];
-            tabs.forEach(t => {
-                const el = document.getElementById(t === 2 ? 'new-book2-tab' : t === 'note' ? 'new-note-tab' : `new-book-${t}-tab`);
-                if(el) {
-                    el.className = `flex-1 border py-1.5 px-3 rounded-xl text-xs font-bold text-center transition-all shrink-0 ${window.newWordBook === t ? (t === 'note' ? 'bg-orange-500 text-white border-orange-500' : 'bg-indigo-600 text-white border-indigo-600') : 'bg-white text-slate-600'}`;
-                }
-            });
+            document.getElementById("new-book1-tab").className = `flex-1 border py-1.5 rounded-xl text-xs font-bold text-center ${window.newWordBook === 1 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600'}`;
+            document.getElementById("new-book2-tab").className = `flex-1 border py-1.5 rounded-xl text-xs font-bold text-center ${window.newWordBook === 2 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600'}`;
+            document.getElementById("new-note-tab").className = `flex-1 border py-1.5 rounded-xl text-xs font-bold text-center ${window.newWordBook === 'note' ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-slate-600'}`;
 
             const lessonContainer = document.getElementById("new-lesson-container");
             lessonContainer.innerHTML = "";
-            const lessons = BOOK_MAP[window.newWordBook] || ["A"];
+            const lessons = BOOK_MAP[window.newWordBook] || ["個人筆記"];
             lessons.forEach(l => {
                 const btn = document.createElement("button");
                 btn.className = `border px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 ${window.selectedNewLesson === l ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600'}`;
@@ -688,9 +666,8 @@
                     example: ex,
                     tag: tag,
                     book: window.newWordBook,
-                    lesson: window.selectedNewLesson,
+                    lesson: window.newWordBook === 'note' ? '個人筆記' : window.selectedNewLesson,
                     type: window.selectedNewCat,
-                    uid: currentUser, // 100% 完整保留原本新增單字時寫入的使用者識別標籤
                     order: orderNum
                 });
                 window.showToast("🎉 成功加入多益字庫！");
@@ -707,32 +684,22 @@
             }
         };
 
-        // 【修改點 5】收合折疊控制：控制單元字母層和詞性層，並動態翻轉按鈕文字
-        window.toggleFilterVisibility = () => {
-            const filterGroup = document.getElementById("dynamic-filter-group");
-            const toggleBtn = document.getElementById("filter-toggle-btn");
-            if(filterGroup.classList.contains("hidden")) {
-                filterGroup.classList.remove("hidden");
-                toggleBtn.innerText = "👁️ 隱藏篩選器";
-            } else {
-                filterGroup.classList.add("hidden");
-                toggleBtn.innerText = "👁️ 顯示篩選器";
-            }
+        window.switchBook = (b) => {
+            window.currentBook = b;
+            window.selectedLessons = [];
+            window.selectedTypes = [];
+            window.renderFilters();
+            window.renderList();
         };
 
         window.renderFilters = () => {
-            // 【修改點 1 & 2】還原第一書冊階層的全新高亮與切換對齊，完全取代原本的「核心字彙」
-            const books = ['0-2k', '2-5k', 'TOEIC', 2, 'note'];
-            books.forEach(b => {
-                const el = document.getElementById(b === 2 ? 'book2-btn' : b === 'note' ? 'book-note-btn' : `book-${b}-btn`);
-                if (el) {
-                    el.className = `flex-1 border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0 text-center ${window.currentBook === b ? (b === 'note' ? 'note-active' : 'lesson-active') : 'bg-white text-slate-600'}`;
-                }
-            });
+            document.getElementById("book1-btn").className = `flex-1 border py-2 rounded-xl text-xs font-bold transition-all text-center ${window.currentBook === 1 ? 'lesson-active' : 'bg-white text-slate-600'}`;
+            document.getElementById("book2-btn").className = `flex-1 border py-2 rounded-xl text-xs font-bold transition-all text-center ${window.currentBook === 2 ? 'lesson-active' : 'bg-white text-slate-600'}`;
+            document.getElementById("book-note-btn").className = `flex-1 border py-2 rounded-xl text-xs font-bold transition-all text-center ${window.currentBook === 'note' ? 'note-active' : 'bg-white text-slate-600'}`;
 
             const lessonContainer = document.getElementById("lesson-filter-container");
             lessonContainer.innerHTML = "";
-            const lessons = BOOK_MAP[window.currentBook] || ["A"];
+            const lessons = BOOK_MAP[window.currentBook] || ["個人筆記"];
             lessons.forEach(l => {
                 const btn = document.createElement("button");
                 const active = window.selectedLessons.includes(l);
@@ -774,13 +741,7 @@
             const now = Date.now();
 
             let filtered = window.vocabs.filter(v => {
-                // 【修改點 6】多益共用與個人筆記防窺隔離邏輯
-                if (window.currentBook === 'note' || v.book === 'note') {
-                    if (v.book !== 'note' || v.uid !== currentUser) return false;
-                } else {
-                    if (v.book !== window.currentBook) return false;
-                }
-
+                if(v.book !== window.currentBook) return false;
                 if(window.selectedLessons.length > 0 && !window.selectedLessons.includes(v.lesson)) return false;
                 if(window.selectedTypes.length > 0 && !window.selectedTypes.includes(v.type)) return false;
                 
@@ -825,7 +786,7 @@
                        </div>`
                     : '';
 
-                // 完全橫向拉滿寬度、同時完美拿掉 Ex 前綴
+                // 【修改點 2】修正拉寬邏輯：將例句獨立到大容器最外層，藉此完全排除 pr-2 側邊擠壓，徹底滿寬右拉
                 const exampleHTML = v.example 
                     ? `<div class="w-[calc(100%+1rem)] -ml-2 mt-3.5 block">
                         <p class="text-xs text-slate-400 font-medium bg-slate-50 p-3 rounded-xl border border-slate-200/50 block w-full leading-relaxed">${v.example}</p>
@@ -893,7 +854,7 @@
                 else if (currentProg.interval === 7) nextInterval = 15;
                 else {
                     nextInterval = 30;
-                    masteredStatus = true;
+                    masterStatus = true;
                 }
                 window.showToast("👍 記憶天數拉長，繼續保持！");
             } else {
@@ -934,15 +895,19 @@
             } else {
                 const searchVal = document.getElementById("searchInput").value.trim().toLowerCase();
                 window.currentPlaybackPool = window.vocabs.filter(v => {
-                    if (window.currentBook === 'note' || v.book === 'note') {
-                        if (v.book !== 'note' || v.uid !== currentUser) return false;
-                    } else {
-                        if (v.book !== window.currentBook) return false;
-                    }
+                    if(v.book !== window.currentBook) return false;
+                    if(window.selectedLessons.length > 0 && !window.selectedLessons.includes(v.lesson)) return false;
+                    if(window.selectedTypes.length > 0 && !window.selectedTypes.includes(v.type)) return false;
                     if(searchVal) {
                         const matchW = (v.word||"").toLowerCase().includes(searchVal);
                         const matchM = (v.meaning||"").toLowerCase().includes(searchVal);
                         if(!matchW && !matchM) return false;
+                    }
+                    if(window.isReviewFilterActive) {
+                        const prog = window.userProgress[v.id];
+                        if(prog && prog.isMastered) return false;
+                        const nextReview = (prog && prog.nextReview) ? prog.nextReview : 0;
+                        if(nextReview > Date.now()) return false;
                     }
                     return true;
                 });
@@ -1078,8 +1043,8 @@
             document.getElementById("edit-example").value = v.example || "";
             document.getElementById("edit-tag").value = v.tag || "";
 
-            window.editBookState = v.book || '0-2k';
-            window.selectedEditLesson = v.lesson || "A";
+            window.editBookState = v.book || 1;
+            window.selectedEditLesson = v.lesson || "未分類";
             window.selectedEditCat = v.type || "n.";
 
             document.getElementById("edit-modal").classList.remove("hidden");
@@ -1088,21 +1053,19 @@
 
         window.setEditBook = (b) => {
             window.editBookState = b;
-            const lessons = BOOK_MAP[b] || ["A"];
-            window.selectedEditLesson = lessons[0] || "A";
+            const lessons = BOOK_MAP[b] || ["個人筆記"];
+            window.selectedEditLesson = lessons[0] || "個人筆記";
             window.renderEditFilters();
         };
 
         window.renderEditFilters = () => {
-            const tabs = ['0-2k', '2-5k', 'TOEIC', 2, 'note'];
-            tabs.forEach(t => {
-                const el = document.getElementById(t === 2 ? 'edit-book2-btn' : t === 'note' ? 'edit-book-note-btn' : `edit-book-${t}-btn`);
-                if(el) el.className = `border py-1.5 px-3 rounded-xl text-sm font-bold text-center shrink-0 ${window.editBookState === t ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600'}`;
-            });
+            document.getElementById("edit-book1-btn").className = `flex-1 border py-1.5 rounded-xl text-xs font-bold text-center ${window.editBookState === 1 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600'}`;
+            document.getElementById("edit-book2-btn").className = `flex-1 border py-1.5 rounded-xl text-xs font-bold text-center ${window.editBookState === 2 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600'}`;
+            document.getElementById("edit-book-note-btn").className = `flex-1 border py-1.5 rounded-xl text-xs font-bold text-center ${window.editBookState === 'note' ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-slate-600'}`;
 
             const lessonContainer = document.getElementById("edit-lesson-container");
             lessonContainer.innerHTML = "";
-            const lessons = BOOK_MAP[window.editBookState] || ["A"];
+            const lessons = BOOK_MAP[window.editBookState] || ["個人筆記"];
             lessons.forEach(l => {
                 const btn = document.createElement("button");
                 btn.className = `border px-3 py-1 rounded-xl text-xs font-bold transition-all shrink-0 ${window.selectedEditLesson === l ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600'}`;
@@ -1133,7 +1096,7 @@
                     example: document.getElementById("edit-example").value.trim(),
                     tag: document.getElementById("edit-tag").value,
                     book: window.editBookState,
-                    lesson: window.selectedEditLesson,
+                    lesson: window.editBookState === 'note' ? '個人筆記' : window.selectedEditLesson,
                     type: window.selectedEditCat
                 });
                 window.showToast("📝 單字更新保存成功");
@@ -1172,7 +1135,7 @@
         window.openQuizSetup = () => {
             const list = document.getElementById("quiz-range-list");
             list.innerHTML = "";
-            const currentLessons = BOOK_MAP[window.currentBook] || ["A"];
+            const currentLessons = BOOK_MAP[window.currentBook] || ["個人筆記"];
             currentLessons.forEach(l => {
                 const div = document.createElement("label");
                 div.className = "flex items-center gap-1.5 p-2 rounded-xl bg-slate-800 border border-white/5 cursor-pointer text-[11px] font-bold";
@@ -1216,14 +1179,7 @@
             const allowedLessons = Array.from(checkedBoxes).map(cb => cb.value);
             if(allowedLessons.length === 0) { alert("請至少勾選一個單元範圍"); return; }
 
-            let pool = window.vocabs.filter(v => {
-                if (window.currentBook === 'note' || v.book === 'note') {
-                    if (v.book !== 'note' || v.uid !== currentUser) return false;
-                } else {
-                    if (v.book !== window.currentBook) return false;
-                }
-                return allowedLessons.includes(v.lesson);
-            });
+            let pool = window.vocabs.filter(v => v.book === window.currentBook && allowedLessons.includes(v.lesson));
             
             const onlyWeak = document.getElementById("weak-choice-mode").checked;
             if(onlyWeak) {
@@ -1424,7 +1380,7 @@
                     const r = parts[1].trim();
                     const m = parts[2].trim();
                     const typeStr = parts[3] ? parts[3].trim() : "n.";
-                    const lessonStr = parts[4] ? parts[4].trim() : "A";
+                    const lessonStr = parts[4] ? parts[4].trim() : "未分類";
 
                     const newDocRef = doc(collection(db, "toeic_vocabs"));
                     batch.set(newDocRef, {
