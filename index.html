@@ -116,9 +116,20 @@
             </div>
             <div class="no-scrollbar pb-2" id="lesson-filter-container"></div>
             <div id="type-filter" class="no-scrollbar pb-2"></div>
-            <div class="flex gap-2">
-                <input type="text" id="searchInput" oninput="window.renderList()" placeholder="🔍 搜尋多益單字庫..." class="flex-1 p-3 rounded-2xl bg-white border border-slate-200 outline-none text-sm shadow-inner">
+            <div class="flex gap-2 mb-2">
+                <button id="toggle-filter-btn" onclick="window.toggleFilterPanel()" 
+                        class="bg-indigo-600 text-white px-4 rounded-2xl text-[13px] font-bold shadow-sm h-[42px] shrink-0">
+                    顯示篩選
+                </button>
+                <input type="text" id="searchInput" oninput="window.renderList()" placeholder="🔍 搜尋多益單字..." 
+                       class="flex-1 p-3 rounded-2xl bg-white border border-slate-200 outline-none text-sm shadow-inner">
                 <button id="sort-btn" onclick="window.toggleSort()" class="bg-white border border-slate-200 px-4 rounded-2xl text-[13px] font-bold text-slate-400 shadow-sm">排序↑</button>
+            </div>
+            
+            <div id="filter-panel" class="hidden bg-white p-4 rounded-3xl border border-slate-100 shadow-sm mb-4 space-y-4">
+                <div id="az-filter" class="no-scrollbar flex gap-1 items-center"></div>
+                <div id="type-filter" class="no-scrollbar flex gap-1 items-center"></div>
+                <div id="tag-filter" class="no-scrollbar flex gap-1 items-center"></div>
             </div>
         </div>
     </div>
@@ -345,13 +356,33 @@
         window.audioTimer = null;
         window.currentAudioIdx = 0;
 
+        // ... 其他變數
+        window.isFilterVisible = false;
+        
+        // 階層定義
+        window.AZ_LIST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        window.LESSON_TYPES = ['n.', 'pron.', 'v.', 'adv.', 'adj.', 'prep.', 'conj.', 'det.', 'int.', 'num', 'phr.', 'abbr.'];
+        window.SITUATION_TAGS = ['人資招募', '商務合約', '財務金融', '行銷銷售', '行政辦公'];
+        
+        // ... 接著定義 LESSON_ORDER 等原本的變數
+
         let currentUser = localStorage.getItem('toeic_user_shared') || '訪客';
         let userHistory = JSON.parse(localStorage.getItem('toeic_user_history') || '["訪客"]');
 
-        const LESSON_TYPES = ['n.', 'v.', 'adj.', 'adv.', 'phr.', '常考片語'];
+        const LESSON_TYPES = ['n.', 'pron.', 'v.', 'adv.', 'adj.', 'prep.', 'conj.', 'det.', 'int.', 'num', 'phr.', 'abbr.'];
+        const SITUATION_TAGS = ['人資招募', '商務合約', '財務金融', '行銷銷售', '行政辦公'];
+        // 修改後的分類配置
         const BOOK_MAP = {
-            1: ["Part1", "Part2", "Part3", "Part4", "Part5", "Part6", "Part7", "未分類"],
+            1: ["0-2k", "2-5k", "TOEIC", "個人筆記"],
             2: ["一般商務", "辦公行政", "金融預算", "行銷銷售", "科技研發", "生產工廠"]
+        };
+        
+        // 階層順序邏輯
+        const CATEGORY_MAP = {
+            "0-2k": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"],
+            "2-5k": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"],
+            "TOEIC": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"],
+            "個人筆記": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
         };
         const LESSON_ORDER = [
             "Part1", "Part2", "Part3", "Part4", "Part5", "Part6", "Part7", "未分類",
@@ -669,6 +700,7 @@
                     lesson: window.newWordBook === 'note' ? '個人筆記' : window.selectedNewLesson,
                     type: window.selectedNewCat,
                     order: orderNum
+                    owner: (window.newWordBook === 'note') ? currentUser : 'public'
                 });
                 window.showToast("🎉 成功加入多益字庫！");
                 document.getElementById('word').value = "";
@@ -741,7 +773,8 @@
             const now = Date.now();
 
             let filtered = window.vocabs.filter(v => {
-                if(v.book !== window.currentBook) return false;
+                // 隔離邏輯：如果是個人筆記，必須是自己建立的；如果是其他本，全部公開
+                if (v.book === 'note' && v.owner !== currentUser) return false;
                 if(window.selectedLessons.length > 0 && !window.selectedLessons.includes(v.lesson)) return false;
                 if(window.selectedTypes.length > 0 && !window.selectedTypes.includes(v.type)) return false;
                 
@@ -1446,7 +1479,51 @@
         // 執行初始化
         initDesktopDragScroll();
         // ------------------------------------
-
+        // 顯示/隱藏控制
+        window.toggleFilterPanel = () => {
+            window.isFilterVisible = !window.isFilterVisible;
+            const panel = document.getElementById("filter-panel");
+            const btn = document.getElementById("toggle-filter-btn");
+            panel.classList.toggle("hidden", !window.isFilterVisible);
+            btn.innerText = window.isFilterVisible ? "隱藏篩選" : "顯示篩選";
+        };
+        
+        // 渲染篩選面板 (取代舊的 renderFilters 邏輯)
+        window.renderFilters = () => {
+            const activeLesson = window.selectedLessons[0]; // 取得當前選擇的單元
+        
+            // A-Z
+            const azCont = document.getElementById("az-filter");
+            azCont.innerHTML = '<span class="text-[10px] text-slate-400 font-bold w-10 shrink-0">A-Z:</span>';
+            if(activeLesson && activeLesson !== "進階商務") {
+                window.AZ_LIST.forEach(char => {
+                    const btn = document.createElement("button");
+                    btn.className = "px-2 py-1 text-[10px] border rounded-lg font-bold bg-white";
+                    btn.innerText = char;
+                    azCont.appendChild(btn);
+                });
+            }
+        
+            // 詞性
+            const typeCont = document.getElementById("type-filter");
+            typeCont.innerHTML = '<span class="text-[10px] text-slate-400 font-bold w-10 shrink-0">詞性:</span>';
+            window.LESSON_TYPES.forEach(t => {
+                const btn = document.createElement("button");
+                btn.className = "px-2 py-1 text-[10px] border rounded-lg font-bold bg-white";
+                btn.innerText = t;
+                typeCont.appendChild(btn);
+            });
+        
+            // 標籤
+            const tagCont = document.getElementById("tag-filter");
+            tagCont.innerHTML = '<span class="text-[10px] text-slate-400 font-bold w-10 shrink-0">情境:</span>';
+            window.SITUATION_TAGS.forEach(t => {
+                const btn = document.createElement("button");
+                btn.className = "px-2 py-1 text-[10px] border rounded-lg font-bold bg-white";
+                btn.innerText = t;
+                tagCont.appendChild(btn);
+            });
+        };
         window.renderUserHistory();
     </script>
 </body>
