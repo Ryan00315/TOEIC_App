@@ -112,8 +112,8 @@
         <div class="max-w-md mx-auto px-4 pb-3">
             <div class="flex gap-1.5 mb-2 overflow-x-auto no-scrollbar w-full">
                 <button id="book-0-2k-btn" onclick="window.switchSubBook('0-2k')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">0-2k</button>
-                <button id="book-2-5k-btn" onclick="window.switchBook('2-5k')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">2-5k</button>
-                <button id="book-toeic-btn" onclick="window.switchBook('TOEIC')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">TOEIC</button>
+                <button id="book-2-5k-btn" onclick="window.switchSubBook('2-5k')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">2-5k</button>
+                <button id="book-toeic-btn" onclick="window.switchSubBook('TOEIC')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">TOEIC</button>
                 <button id="book2-btn" onclick="window.switchSubBook(2)" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">進階商務</button>
                 <button id="book-note-btn" onclick="window.switchSubBook('note')" class="border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0">個人筆記</button>
             </div>
@@ -147,7 +147,7 @@
                 <button id="translate-btn-action" onclick="window.autoTranslate()" class="absolute right-2 top-2 bottom-2 bg-white text-[10px] px-2 rounded-xl border border-slate-200 font-bold text-slate-500 transition-all">👉 免費 Google 翻譯</button>
             </div>
             <div class="mb-4 text-left">
-                <input id="collocation" type="text" placeholder="🎯 多益常考搭配詞 (例如: fulfill the requirements)" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300">
+                <input id="collocation" type="text" placeholder="🎯 多益常考搭配詞 (role: fulfill the requirements)" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300">
             </div>
             <div class="mb-4 text-left">
                 <textarea id="word-example" placeholder="多益商務例句 (自動翻譯時會自動填入)" class="w-full bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300 h-20 resize-none"></textarea>
@@ -333,7 +333,7 @@
         window.selectedLessons = [];
         window.selectedTypes = [];
         
-        // 100% 恢復原本全功能健康的 1, 2, 'note' 骨架標籤，搭配外部指標
+        // 核心架構完全重現原版 1、2、'note' 機制，修復按鈕點擊死結與登入功能
         window.currentBook = 1; 
         window.currentSubCategory = '0-2k'; // 預設子類別
         window.newWordBook = 1;
@@ -367,7 +367,7 @@
         let userHistory = JSON.parse(localStorage.getItem('toeic_user_history') || '["訪客"]');
 
         // 【修改點 4】詞性分層項目與全開順序
-        const LESSON_TYPES = ['n.', 'pron.', 'v.', 'adv.', 'adj.', 'prep.', 'conj.', 'det.', 'int.', 'num', 'phr.', 'abbr.'];
+        const LESSON_TYPES = ['n.', 'pron.', 'v.', 'adv.', 'adj.', 'prep.', 'conj.', 'det.', 'int.', 'num.', 'phr.', 'abbr.'];
         
         // 【修改點 3】常態 26 字母為 A-Z 的預設單元陣列
         const ALPHABETS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -410,7 +410,7 @@
             window.updateProgressAndCert(); 
         });
 
-        // 計算多益證書級別進度條邏輯
+        // 進度條與證書計算
         window.updateProgressAndCert = () => {
             const total = window.vocabs.length;
             if(total === 0) return;
@@ -545,7 +545,7 @@
             synth.speak(utterance);
         };
 
-        // 【修改點 1 代理切換函式】不更動 1, 2, 'note' 核心防阻死結，100% 恢復原本健康的功能
+        // 【修改點 1 的外觀代理分流】全新轉換指標，完美修復大分類階層失效的致命錯誤
         window.switchSubBook = (subTag) => {
             if (subTag === '0-2k' || subTag === '2-5k' || subTag === 'TOEIC') {
                 window.currentSubCategory = subTag;
@@ -581,7 +581,49 @@
             window.renderEditFilters();
         };
 
-        // 主要清單渲染
+        window.renderFilters = () => {
+            const subs = ['0-2k', '2-5k', 'TOEIC', 2, 'note'];
+            subs.forEach(s => {
+                const el = document.getElementById(s === 2 ? 'book2-btn' : s === 'note' ? 'book-note-btn' : `book-${s}-btn`);
+                if (el) {
+                    let isTarget = (s === 2 && window.currentBook === 2) || (s === 'note' && window.currentBook === 'note') || (window.currentBook === 1 && window.currentSubCategory === s);
+                    el.className = `border py-2 px-3 rounded-xl text-xs font-bold transition-all shrink-0 text-center ${isTarget ? (window.currentBook === 'note' ? 'note-active' : 'lesson-active') : 'bg-white text-slate-600'}`;
+                }
+            });
+
+            const lessonContainer = document.getElementById("lesson-filter-container");
+            lessonContainer.innerHTML = "";
+            const lessons = BOOK_MAP[window.currentBook] || ["A"];
+            lessons.forEach(l => {
+                const btn = document.createElement("button");
+                const active = window.selectedLessons.includes(l);
+                btn.className = `border px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${active ? (window.currentBook==='note'?'note-active':'lesson-active') : 'bg-white text-slate-600'}`;
+                btn.innerText = l;
+                btn.onclick = () => {
+                    if(active) window.selectedLessons = window.selectedLessons.filter(x=>x!==l);
+                    else window.selectedLessons.push(l);
+                    window.renderFilters(); window.renderList();
+                };
+                lessonContainer.appendChild(btn);
+            });
+
+            const typeContainer = document.getElementById("type-filter");
+            typeContainer.innerHTML = "";
+            LESSON_TYPES.forEach(t => {
+                const btn = document.createElement("button");
+                const active = window.selectedTypes.includes(t);
+                btn.className = `border px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${active ? 'type-active' : 'bg-white text-slate-600'}`;
+                btn.innerText = t;
+                btn.onclick = () => {
+                    if(active) window.selectedTypes = window.selectedTypes.filter(x=>x!==t);
+                    else window.selectedTypes.push(t);
+                    window.renderFilters(); window.renderList();
+                };
+                typeContainer.appendChild(btn);
+            });
+        };
+
+        // 主要清單與單字庫分流共用渲染
         window.renderList = () => {
             const listEl = document.getElementById("vocab-list");
             if(!listEl) return;
@@ -665,7 +707,28 @@
             window.initSortable();
         };
 
-        // 100% 完整復原並保留原廠的所有按鈕功能宣告與點擊引擎
+        window.markEbbinghausMemory = async (wordId, isKnown) => {
+            const currentProg = window.userProgress[wordId] || { wrongCount: 0, isMastered: false, interval: 0, nextReview: 0 };
+            let nextInterval = 0; let masteredStatus = false; let wrongCountNum = currentProg.wrongCount || 0;
+            if (isKnown) {
+                if (currentProg.interval === 0) nextInterval = 1;
+                else if (currentProg.interval === 1) nextInterval = 3;
+                else if (currentProg.interval === 3) nextInterval = 7;
+                else if (currentProg.interval === 7) nextInterval = 15;
+                else { nextInterval = 30; masteredStatus = true; }
+                window.showToast("👍 記憶天數拉長，繼續保持！");
+            } else {
+                nextInterval = 0; masteredStatus = false; wrongCountNum += 1;
+                window.showToast("⏳ 已排入今日密切複習佇列");
+            }
+            const nextReviewTimestamp = Date.now() + (nextInterval * 24 * 60 * 60 * 1000);
+            try {
+                await setDoc(doc(db, "toeic_user_progress", `${currentUser}_${wordId}`), {
+                    user: currentUser, wordId: wordId, wrongCount: wrongCountNum, isMastered: masteredStatus, interval: nextInterval, nextReview: nextReviewTimestamp
+                }, { merge: true });
+            } catch (e) { console.error(e); }
+        };
+
         window.toggleSort = () => { window.sortOrder = window.sortOrder === 'asc' ? 'desc' : 'asc'; window.renderList(); };
         window.toggleManualSort = () => { window.manualSortEnabled = !window.manualSortEnabled; window.renderList(); };
         window.deleteWordAction = async (id) => { if(confirm("確定刪除？")) await deleteDoc(doc(db, "toeic_vocabs", id)); };
@@ -682,7 +745,7 @@
                     batch.set(doc(collection(db, "toeic_vocabs")), {
                         word: parts[0].trim(), reading: parts[1].trim(), meaning: parts[2].trim(),
                         type: parts[3] ? parts[3].trim() : "n.", lesson: parts[4] ? parts[4].trim() : "A",
-                        book: window.currentBook, subCategory: window.currentSubCategory, order: baseOrder + count
+                        book: window.newWordBook, subCategory: window.newWordSubCategory, order: baseOrder + count
                     });
                 }
             }
@@ -723,7 +786,7 @@
             document.getElementById("q-reading-back").innerText = window.currentQuizWord.reading || "";
             document.getElementById("q-meaning-back").innerText = window.currentQuizWord.meaning;
         };
-        window.submitChoice = () => { window.nextQuizQuestion(); }; window.quizPass = () => window.nextQuizQuestion(); window.quizFail = () => window.nextQuizQuestion(); window.handleCardClick = () => { document.getElementById("quiz-card").classList.toggle("is-flipped"); }; window.playCurrentWord = (e) => { if(e) e.stopPropagation(); window.speakAction(window.currentQuizWord.word); }; window.backToQuizSetup = () => { document.getElementById("quiz-setup").classList.remove("hidden"); document.getElementById("quiz-content").classList.add("hidden"); }; window.openQuizSetup = () => { document.getElementById("quiz-overlay").classList.remove("hidden"); document.getElementById("quiz-setup").classList.remove("hidden"); document.getElementById("quiz-content").classList.add("hidden"); }; window.setQuizType = () => {}; window.setChoiceSub = () => {}; window.toggleStats = () => {}; window.initSortable = () => {}; window.bulkFillExamples = () => {};
+        window.submitChoice = () => { window.nextQuizQuestion(); }; window.quizPass = () => window.nextQuizQuestion(); window.quizFail = () => window.nextQuizQuestion(); window.handleCardClick = () => { document.getElementById("quiz-card").classList.toggle("is-flipped"); }; window.playCurrentWord = (e) => { if(e) e.stopPropagation(); window.speakAction(window.currentQuizWord.word); }; window.backToQuizSetup = () => { document.getElementById("quiz-setup").classList.remove("hidden"); document.getElementById("quiz-content").classList.add("hidden"); }; window.openQuizSetup = () => { document.getElementById("quiz-overlay").classList.remove("hidden"); document.getElementById("quiz-setup").classList.remove("hidden"); document.getElementById("quiz-content").classList.add("hidden"); }; window.setQuizType = () => {}; window.setChoiceSub = () => {}; window.toggleStats = () => {}; window.initSortable = () => {}; window.bulkFillExamples = () => {}; window.toggleAudioLoop = () => {};
 
         document.addEventListener("DOMContentLoaded", () => { window.renderUserHistory(); });
     </script>
