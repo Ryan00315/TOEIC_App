@@ -212,22 +212,20 @@
                 <button onclick="location.reload()" class="text-2xl text-white">✕</button>
             </div>
 
-            <div id="quiz-card-container" onclick="window.handleCardClick(event)" class="card-flip w-full min-h-[160px] relative mb-4">
+            <div id="quiz-card-container" onclick="window.handleCardClick(event)" class="card-flip w-full h-[160px] relative mb-4">
                 <div id="quiz-card" class="card-inner">
                     <div class="card-front bg-indigo-600 text-white rounded-[40px] flex flex-col items-center justify-center p-8 h-full">
                         <p id="q-meaning-front" class="text-3xl font-black text-center w-full break-words"></p>
                         <div id="hear-icon" class="text-6xl hidden">🎧</div>
                     </div>
-                    <div class="card-back bg-white text-slate-900 rounded-[40px] p-6 text-center flex flex-col items-center justify-center">
-                        <div class="my-auto w-full">
-                            <p id="q-word-answer" class="text-indigo-600 font-black text-3xl mb-1 break-all"></p>
+                    <div class="card-back bg-white text-slate-900 rounded-[40px] p-6 overflow-hidden relative">
+                        <button onclick="window.playCurrentWord(event)" class="audio-btn absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-indigo-50 hover:bg-indigo-100 rounded-full flex items-center justify-center text-lg shadow-sm active:scale-90 transition-all pointer-events-auto z-10">
+                            <i class="fa-solid fa-volume-high text-indigo-500 text-sm"></i>
+                        </button>
+                        <div class="w-full h-full flex flex-col items-center justify-center px-12 text-center">
+                            <p id="q-word-answer" class="text-indigo-600 font-black text-3xl mb-1 leading-tight break-all"></p>
                             <p id="q-reading-back" class="text-slate-400 font-bold text-sm mb-1 break-all"></p>
                             <p id="q-meaning-back" class="text-base font-bold text-slate-500 break-all"></p>
-                        </div>
-                        <div class="mt-2 shrink-0">
-                            <button onclick="window.playCurrentWord(event)" class="audio-btn w-12 h-12 bg-indigo-50 hover:bg-indigo-100 rounded-full flex items-center justify-center text-lg shadow-sm active:scale-90 transition-all pointer-events-auto">
-                                <i class="fa-solid fa-volume-high text-indigo-500 text-sm"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -357,7 +355,7 @@
         window.currentAudioIdx = 0;
         
         window.isFilterHidden = false; 
-        window.choiceOptionsRevealed = false; // 控制選擇題按鈕顯示狀態
+        window.choiceOptionsRevealed = false; 
 
         let currentUser = localStorage.getItem('toeic_user_shared') || '訪客';
         let userHistory = JSON.parse(localStorage.getItem('toeic_user_history') || '["訪客"]');
@@ -926,7 +924,7 @@
             if (isKnown) {
                 if (forceMaster) {
                     nextInterval = 30;
-                    masteredStatus = true; // 直接標記為已牢記
+                    masteredStatus = true; 
                 } else {
                     if (currentProg.interval === 0) nextInterval = 1;
                     else if (currentProg.interval === 1) nextInterval = 3;
@@ -934,7 +932,7 @@
                     else if (currentProg.interval === 7) nextInterval = 15;
                     else {
                         nextInterval = 30;
-                        masteredStatus = true; // 修正了原本的錯字 (原為 masterStatus)
+                        masteredStatus = true; 
                     }
                 }
                 window.showToast("👍 記憶狀態已更新！");
@@ -1281,7 +1279,6 @@
             
             const onlyWeak = document.getElementById("weak-choice-mode").checked;
             if(onlyWeak) {
-                // 使用 && 防錯
                 pool = pool.filter(v => window.userProgress[v.id] && window.userProgress[v.id].wrongCount > 0);
             }
 
@@ -1322,7 +1319,6 @@
             document.getElementById("spelling-input-area").classList.add("hidden");
             document.getElementById("standard-actions").classList.add("hidden");
             
-            // 預設先隱藏選項，並顯示提示文字
             window.choiceOptionsRevealed = false;
             document.getElementById("tap-to-reveal").classList.add("hidden");
 
@@ -1398,7 +1394,6 @@
                     inner.classList.add("is-flipped");
                     window.speakAction(window.currentQuizWord.word);
                 }
-                // 3秒後自動進入下一題
                 setTimeout(() => { window.nextQuizQuestion(); }, 3000);
             }
         };
@@ -1408,7 +1403,6 @@
             window.nextQuizQuestion();
         };
 
-        // 按加強複習，也會翻面並等 3 秒跳下一題
         window.quizFail = () => {
             window.markEbbinghausMemory(window.currentQuizWord.id, false);
             const inner = document.getElementById("quiz-card");
@@ -1421,7 +1415,6 @@
             }
         };
 
-        // 點擊卡片顯示選項 (針對選擇題)
         window.handleCardClick = (e) => {
             if(e.target.closest('.audio-btn')) return;
             
@@ -1529,7 +1522,6 @@
 
         window.bulkFillExamples = () => {};
 
-        // --- 新增：讓電腦端支援滑鼠拖曳滑動 ---
         const initDesktopDragScroll = () => {
             const sliders = document.querySelectorAll('.no-scrollbar');
             let isDown = false;
@@ -1539,7 +1531,6 @@
             sliders.forEach(slider => {
                 slider.addEventListener('mousedown', (e) => {
                     isDown = true;
-                    // 當按下時顯示抓取游標
                     slider.style.cursor = 'grabbing';
                     startX = e.pageX - slider.offsetLeft;
                     scrollLeft = slider.scrollLeft;
@@ -1557,17 +1548,15 @@
                 
                 slider.addEventListener('mousemove', (e) => {
                     if (!isDown) return;
-                    e.preventDefault(); // 防止拖曳時反白到文字
+                    e.preventDefault();
                     const x = e.pageX - slider.offsetLeft;
-                    const walk = (x - startX) * 2; // 數字 2 是滑動的靈敏度，可依喜好調整
+                    const walk = (x - startX) * 2;
                     slider.scrollLeft = scrollLeft - walk;
                 });
             });
         };
 
-        // 執行初始化
         initDesktopDragScroll();
-        // ------------------------------------
 
         window.renderUserHistory();
     </script>
