@@ -1407,6 +1407,46 @@
 
         window.bulkFillExamples = () => {};
 
+        // --- 新增：讓電腦端支援滑鼠拖曳滑動 ---
+        const initDesktopDragScroll = () => {
+            const sliders = document.querySelectorAll('.no-scrollbar');
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            sliders.forEach(slider => {
+                slider.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    // 當按下時顯示抓取游標
+                    slider.style.cursor = 'grabbing';
+                    startX = e.pageX - slider.offsetLeft;
+                    scrollLeft = slider.scrollLeft;
+                });
+                
+                slider.addEventListener('mouseleave', () => {
+                    isDown = false;
+                    slider.style.cursor = '';
+                });
+                
+                slider.addEventListener('mouseup', () => {
+                    isDown = false;
+                    slider.style.cursor = '';
+                });
+                
+                slider.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault(); // 防止拖曳時反白到文字
+                    const x = e.pageX - slider.offsetLeft;
+                    const walk = (x - startX) * 2; // 數字 2 是滑動的靈敏度，可依喜好調整
+                    slider.scrollLeft = scrollLeft - walk;
+                });
+            });
+        };
+
+        // 執行初始化
+        initDesktopDragScroll();
+        // ------------------------------------
+
         window.renderUserHistory();
     </script>
 </body>
