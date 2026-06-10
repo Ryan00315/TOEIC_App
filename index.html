@@ -232,14 +232,14 @@
                     </div>
                 </div>
             </div>
-            <p id="tap-to-reveal" class="text-xs text-slate-400 mt-2">點一下顯示答案/選項</p>
+            <p id="tap-to-reveal" class="text-xs text-slate-400 mt-2 hidden">點擊單字卡顯示選項</p>
             <div id="choice-area" class="mb-6 hidden">
                 <div class="grid grid-cols-1 gap-3 mb-4">
                     <button onclick="window.submitChoice(0)" id="opt-0" class="option-btn bg-white/10 py-5 rounded-3xl font-bold text-lg"></button>
                     <button onclick="window.submitChoice(1)" id="opt-1" class="option-btn bg-white/10 py-5 rounded-3xl font-bold text-lg"></button>
                     <button onclick="window.submitChoice(2)" id="opt-2" class="option-btn bg-white/10 py-5 rounded-3xl font-bold text-lg"></button>
                 </div>
-                <button onclick="window.quizFail()" class="w-full bg-rose-500/10 border-2 border-rose-500/30 text-rose-500 py-4 rounded-2xl font-black text-sm">加強複習</button>
+                <button onclick="window.quizFail()" class="w-full bg-rose-500/10 border-2 border-rose-500/30 text-rose-500 py-4 rounded-2xl font-black text-sm">不知道 / 加強複習</button>
             </div>
 
             <div id="spelling-input-area" class="mb-4 hidden">
@@ -357,6 +357,7 @@
         window.currentAudioIdx = 0;
         
         window.isFilterHidden = false; 
+        window.choiceOptionsRevealed = false; // 控制選擇題按鈕顯示狀態
 
         let currentUser = localStorage.getItem('toeic_user_shared') || '訪客';
         let userHistory = JSON.parse(localStorage.getItem('toeic_user_history') || '["訪客"]');
@@ -668,7 +669,7 @@
             });
         };
 
-        // 寫入單字 (包含 owner 權限)
+        // 寫入單字
         window.submitNewWord = async () => {
             const w = document.getElementById('word').value.trim();
             const r = document.getElementById('reading').value.trim();
@@ -851,6 +852,7 @@
                 const prog = window.userProgress[v.id] || { wrongCount: 0, isMastered: false, interval: 0, nextReview: 0 };
                 const li = document.createElement("li");
                 li.setAttribute("data-id", v.id);
+                // 卡片本身狀態
                 li.className = `bg-white rounded-[32px] p-5 border border-slate-200 shadow-sm relative flex flex-col justify-between transition-all duration-300 ${prog.isMastered ? 'opacity-50' : ''}`;
 
                 const collocationHTML = v.collocation 
@@ -869,6 +871,7 @@
                 const isNeedReviewNow = prog.nextReview <= now && !prog.isMastered;
                 const reviewBadgeHTML = isNeedReviewNow ? `<span class="text-[10px] bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded-md font-black">⏳ 該複習</span>` : '';
 
+                // 修改：在列表點擊已牢記，直接標記為 true, 並加上 true 參數跳過層層審核
                 li.innerHTML = `
                     <div class="w-full flex flex-col">
                         <div class="flex justify-between items-start w-full">
@@ -892,7 +895,7 @@
                             </div>
                             
                             <div class="flex flex-col gap-1.5 items-end shrink-0">
-                                <button onclick="window.markEbbinghausMemory('${v.id}', true)" class="text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${prog.isMastered ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'}">
+                                <button onclick="window.markEbbinghausMemory('${v.id}', true, true)" class="text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${prog.isMastered ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'}">
                                     <i class="fa-solid fa-check mr-0.5"></i> 已牢記
                                 </button>
                                 <button onclick="window.markEbbinghausMemory('${v.id}', false)" class="text-[10px] font-bold px-2.5 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100/70 hover:bg-rose-100 transition-all">
@@ -913,22 +916,28 @@
             window.initSortable();
         };
 
-        window.markEbbinghausMemory = async (wordId, isKnown) => {
+        // 參數加上 forceMaster, 當清單按已牢記時直接直達滿級 (100%牢記)
+        window.markEbbinghausMemory = async (wordId, isKnown, forceMaster = false) => {
             const currentProg = window.userProgress[wordId] || { wrongCount: 0, isMastered: false, interval: 0, nextReview: 0 };
             let nextInterval = 0;
             let masteredStatus = false;
             let wrongCountNum = currentProg.wrongCount || 0;
 
             if (isKnown) {
-                if (currentProg.interval === 0) nextInterval = 1;
-                else if (currentProg.interval === 1) nextInterval = 3;
-                else if (currentProg.interval === 3) nextInterval = 7;
-                else if (currentProg.interval === 7) nextInterval = 15;
-                else {
+                if (forceMaster) {
                     nextInterval = 30;
-                    masteredStatus = true; // 修正了原本 masterStatus 的 Typo
+                    masteredStatus = true; // 直接標記為已牢記
+                } else {
+                    if (currentProg.interval === 0) nextInterval = 1;
+                    else if (currentProg.interval === 1) nextInterval = 3;
+                    else if (currentProg.interval === 3) nextInterval = 7;
+                    else if (currentProg.interval === 7) nextInterval = 15;
+                    else {
+                        nextInterval = 30;
+                        masteredStatus = true; // 修正了原本的錯字 (原為 masterStatus)
+                    }
                 }
-                window.showToast("👍 記憶天數拉長，繼續保持！");
+                window.showToast("👍 記憶狀態已更新！");
             } else {
                 nextInterval = 0;
                 masteredStatus = false;
@@ -1272,7 +1281,7 @@
             
             const onlyWeak = document.getElementById("weak-choice-mode").checked;
             if(onlyWeak) {
-                // 修復舊瀏覽器不支援 ?. 的問題
+                // 使用 && 防錯
                 pool = pool.filter(v => window.userProgress[v.id] && window.userProgress[v.id].wrongCount > 0);
             }
 
@@ -1312,6 +1321,9 @@
             document.getElementById("choice-area").classList.add("hidden");
             document.getElementById("spelling-input-area").classList.add("hidden");
             document.getElementById("standard-actions").classList.add("hidden");
+            
+            // 預設先隱藏選項，並顯示提示文字
+            window.choiceOptionsRevealed = false;
             document.getElementById("tap-to-reveal").classList.add("hidden");
 
             const isSpelling = document.getElementById("spelling-mode").checked;
@@ -1323,8 +1335,8 @@
             }
 
             if(window.quizMode === 'choice') {
-                document.getElementById("choice-area").classList.remove("hidden");
                 window.setupChoiceOptions();
+                document.getElementById("tap-to-reveal").classList.remove("hidden");
             } else if(isSpelling) {
                 document.getElementById("spelling-input-area").classList.remove("hidden");
                 const inputF = document.getElementById("spelling-input");
@@ -1381,6 +1393,13 @@
                 setTimeout(() => { window.nextQuizQuestion(); }, 1000);
             } else {
                 window.markEbbinghausMemory(window.currentQuizWord.id, false);
+                const inner = document.getElementById("quiz-card");
+                if(inner && !inner.classList.contains("is-flipped")) {
+                    inner.classList.add("is-flipped");
+                    window.speakAction(window.currentQuizWord.word);
+                }
+                // 3秒後自動進入下一題
+                setTimeout(() => { window.nextQuizQuestion(); }, 3000);
             }
         };
 
@@ -1389,19 +1408,32 @@
             window.nextQuizQuestion();
         };
 
+        // 按加強複習，也會翻面並等 3 秒跳下一題
         window.quizFail = () => {
             window.markEbbinghausMemory(window.currentQuizWord.id, false);
             const inner = document.getElementById("quiz-card");
             if(inner && !inner.classList.contains("is-flipped")) {
                 inner.classList.add("is-flipped");
                 window.speakAction(window.currentQuizWord.word);
+                setTimeout(() => { window.nextQuizQuestion(); }, 3000);
             } else {
                 window.nextQuizQuestion();
             }
         };
 
+        // 點擊卡片顯示選項 (針對選擇題)
         window.handleCardClick = (e) => {
             if(e.target.closest('.audio-btn')) return;
+            
+            if(window.quizMode === 'choice') {
+                if(!window.choiceOptionsRevealed) {
+                    window.choiceOptionsRevealed = true;
+                    document.getElementById("choice-area").classList.remove("hidden");
+                    document.getElementById("tap-to-reveal").classList.add("hidden");
+                }
+                return;
+            }
+
             const inner = document.getElementById("quiz-card");
             if(inner) {
                 inner.classList.toggle("is-flipped");
