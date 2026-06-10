@@ -926,7 +926,7 @@
                 else if (currentProg.interval === 7) nextInterval = 15;
                 else {
                     nextInterval = 30;
-                    masterStatus = true;
+                    masteredStatus = true; // 修正了原本 masterStatus 的 Typo
                 }
                 window.showToast("👍 記憶天數拉長，繼續保持！");
             } else {
@@ -1272,7 +1272,7 @@
             
             const onlyWeak = document.getElementById("weak-choice-mode").checked;
             if(onlyWeak) {
-                // 這裡改成傳統防錯寫法，避免舊版瀏覽器跳錯
+                // 修復舊瀏覽器不支援 ?. 的問題
                 pool = pool.filter(v => window.userProgress[v.id] && window.userProgress[v.id].wrongCount > 0);
             }
 
