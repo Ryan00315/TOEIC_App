@@ -943,7 +943,15 @@
                 window.showToast("⏳ 已排入今日密切複習佇列");
             }
 
-            const nextReviewTimestamp = Date.now() + (nextInterval * 24 * 60 * 60 * 1000);
+            // 【優化核心】計算下一次複習的時間，並對齊到該日的凌晨 00:00:00
+            const nextDate = new Date();
+            nextDate.setDate(nextDate.getDate() + nextInterval);
+            // 如果不是當天複習（nextInterval > 0），就將時間設為凌晨 0點
+            if (nextInterval > 0) {
+                nextDate.setHours(0, 0, 0, 0);
+            }
+            const nextReviewTimestamp = nextDate.getTime();
+
             const progDocId = `${currentUser}_${wordId}`;
 
             try {
