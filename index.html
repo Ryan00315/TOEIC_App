@@ -4,10 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TOEIC Note</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TOEIC Note">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <meta name="theme-color" content="#4f46e5">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 讓畫面像原生 App，禁止下拉出現重新整理的圈圈與反彈特效 */
+        html, body {
+            overscroll-behavior-y: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .card-flip { perspective: 1000px; height: 100%; width: 100%; }
         .card-inner { transition: transform 0.4s; transform-style: preserve-3d; cursor: pointer; height: 100%; width: 100%; position: relative; }
         .card-inner.is-flipped { transform: rotateY(180deg); }
@@ -131,7 +145,7 @@
 
     <div class="max-w-md mx-auto p-4">
        <button onclick="window.openNewWordPanel()" class="mb-4 bg-indigo-50 text-indigo-600 px-6 py-2.5 rounded-full text-sm font-bold border border-indigo-100 w-full active:scale-95 transition-all shadow-sm">＋ 新增多益單字</button>
-        
+       
         <section id="input-section" class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm transition-all overflow-hidden text-center">
              <div class="grid grid-cols-2 gap-3 mb-4 text-left">
                <input id="word" type="text" placeholder="多益單字 (英文)" 
@@ -307,7 +321,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, where, setDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 替換為包含離線快取的 Firestore 模組
+        import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, where, setDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD7wl6EHb4pIQZ-Dx7tY4LLmS4zgEAzceY",
@@ -320,7 +335,12 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        
+        // 啟動多頁籤支援的本地快取
+        const db = initializeFirestore(app, {
+            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+        });
+        
         const vocabsCol = collection(db, "toeic_vocabs");
         const progressCol = collection(db, "toeic_user_progress");
 
@@ -1567,6 +1587,15 @@
         initDesktopDragScroll();
 
         window.renderUserHistory();
+
+        // 註冊 Service Worker 實現真正的離線讀取與 PWA 安裝
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('✅ Service Worker 註冊成功！範圍：', reg.scope))
+                    .catch(err => console.error('⚠️ Service Worker 註冊失敗：', err));
+            });
+        }
     </script>
 </body>
 </html>
