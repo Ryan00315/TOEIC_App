@@ -153,11 +153,11 @@
                <input id="word" type="text" placeholder="多益單字 (英文)" 
                     class="bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300"
                     oninput="window.checkDuplicate()"
-                    onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.autoTranslate(); this.blur(); }">
+                    onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.autoTranslate(event.shiftKey); this.blur(); }">
                 <input id="reading" type="text" placeholder="KK音標 與 音節 (自動生成)" onfocus="window.fixScroll()" class="bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300">
             </div>
             <div class="relative mb-4 text-left">
-                <input id="meaning" type="text" placeholder="中文意思 (自動翻譯)" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 pr-36 rounded-2xl outline-none text-sm border focus:border-indigo-300 font-bold">
+                <input id="meaning" type="text" placeholder="中文 (自動翻譯)" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 pr-36 rounded-2xl outline-none text-sm border focus:border-indigo-300 font-bold">
                 <button id="translate-btn-action" onclick="window.autoTranslate()" class="absolute right-2 top-2 bottom-2 bg-white text-[10px] px-2 rounded-xl border border-slate-200 font-bold text-slate-500 transition-all">👉 免費 Google 翻譯</button>
             </div>
             <div class="mb-4 text-left">
@@ -357,7 +357,7 @@
         window.selectedNewLesson = 'A'; 
         window.sortOrder = 'asc';
         window.manualSortEnabled = false;
-        window.translateCache = JSON.parse(localStorage.getItem("toeic_translate_cache_v1") || "{}");
+        window.translateCache = JSON.parse(localStorage.getItem("toeic_translate_cache_v2") || "{}");
         window.isTranslating = false;
         window.quizPool = [];
         window.remainingPool = [];
@@ -510,7 +510,8 @@
         };
 
         // 智能 AI 自動翻譯引擎 (透過 Vercel 後端保護 API Key)
-        window.autoTranslate = async () => {
+        // 加入 forceFetch 參數，若為 true 則強制跳過快取
+        window.autoTranslate = async (forceFetch = false) => {
             if (window.isTranslating) {
                 window.showToast("🤖 AI 思考中...");
                 return;
@@ -522,11 +523,11 @@
             const readingEl = document.getElementById("reading"); 
             const meaningEl = document.getElementById("meaning");
             const exampleEl = document.getElementById("word-example");
-            const collocationEl = document.getElementById("collocation"); // 抓取搭配詞欄位
+            const collocationEl = document.getElementById("collocation");
             const transBtn = document.getElementById("translate-btn-action");
 
-            // 檢查快取
-            if (window.translateCache[inputVal] && window.translateCache[inputVal].example) {
+            // 檢查快取 (只有在 forceFetch 為 false 時才使用快取)
+            if (!forceFetch && window.translateCache[inputVal] && window.translateCache[inputVal].example) {
                 const cached = window.translateCache[inputVal];
                 if (readingEl) readingEl.value = cached.reading || "";
                 if (meaningEl) {
@@ -543,9 +544,8 @@
             if (transBtn) { transBtn.disabled = true; transBtn.innerText = "⏳ AI 處理中..."; }
 
             try {
-                // ⚠️ 這裡要換成你為多益建立的新 Vercel 專案網址
-                // 例如: https://toeic-api-xxxx.vercel.app/api/translate
-                const response = await fetch("https://你的-多益-vercel-網址.vercel.app/api/translate", {
+                // ⚠️ 記得換成你真正的 Vercel 網址
+                const response = await fetch("https://japaneses-app-1q3g.vercel.app/api/toeic", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ text: inputVal })
@@ -554,7 +554,6 @@
                 if (!response.ok) throw new Error("API 請求失敗");
                 const data = await response.json();
 
-                // 填入所有欄位
                 if (readingEl) readingEl.value = data.reading || "";
                 if (meaningEl) {
                     meaningEl.value = data.meaning || "";
@@ -563,22 +562,27 @@
                 if (exampleEl) exampleEl.value = data.example || "";
                 if (collocationEl) collocationEl.value = data.collocation || "";
 
-                // 存入快取
+                // 存入新的 v2 快取中
                 window.translateCache[inputVal] = {
                     reading: data.reading,
                     meaning: data.meaning,
                     example: data.example,
                     collocation: data.collocation
                 };
-                localStorage.setItem("toeic_translate_cache_v1", JSON.stringify(window.translateCache));
-                window.showToast("✨ AI 智能查詢成功！");
+                localStorage.setItem("toeic_translate_cache_v2", JSON.stringify(window.translateCache));
+                
+                if(forceFetch) {
+                    window.showToast("🔄 已強制重新詢問 AI！");
+                } else {
+                    window.showToast("✨ AI 查詢成功！");
+                }
                 
             } catch (e) {
                 console.error(e);
                 window.showToast("❌ 網路或 API 請求失敗");
             } finally {
                 window.isTranslating = false;
-                if (transBtn) { transBtn.disabled = false; transBtn.innerText = "👉 Gemini AI 翻譯"; }
+                if (transBtn) { transBtn.disabled = false; transBtn.innerText = "👉 Gemini Ai"; }
             }
         };
 
@@ -1140,8 +1144,15 @@
         window.deleteWordAction = async (id) => {
             if(!confirm("確定要將此單字移出多益資料庫嗎？")) return;
             try {
+                // 【新增機制】在刪除單字的同時，一併清除該單字的歷史快取
+                const targetWord = window.vocabs.find(v => v.id === id);
+                if (targetWord && targetWord.word) {
+                    delete window.translateCache[targetWord.word];
+                    localStorage.setItem("toeic_translate_cache_v2", JSON.stringify(window.translateCache));
+                }
+
                 await deleteDoc(doc(db, "toeic_vocabs", id));
-                window.showToast("🗑️ 單字已刪除");
+                window.showToast("🗑️ 單字與快取已同步清除");
             } catch(e) { console.error(e); }
         };
 
