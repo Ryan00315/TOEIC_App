@@ -140,7 +140,7 @@
             <div class="flex gap-2">
                 <button id="toggle-filter-btn" onclick="window.toggleFilters()" class="bg-white border border-slate-200 px-4 rounded-2xl text-[13px] font-bold text-slate-600 shadow-sm shrink-0 whitespace-nowrap">顯示篩選</button>
                 <input type="text" id="searchInput" oninput="window.renderList()" placeholder="🔍 搜尋多益單字庫..." class="flex-1 p-3 rounded-2xl bg-white border border-slate-200 outline-none text-sm shadow-inner min-w-[100px]">
-                <button id="sort-btn" onclick="window.toggleSort()" class="bg-white border border-slate-200 px-4 rounded-2xl text-[13px] font-bold text-slate-400 shadow-sm shrink-0 whitespace-nowrap">排序↓</button>
+                <button id="sort-btn" onclick="window.toggleSort()" class="bg-white border border-slate-200 px-4 rounded-2xl text-[13px] font-bold text-slate-400 shadow-sm shrink-0 whitespace-nowrap">排序↑</button>
             </div>
         </div>
     </div>
@@ -1082,8 +1082,10 @@
         window.toggleSort = () => {
             if(window.manualSortEnabled) return;
             window.sortOrder = window.sortOrder === 'asc' ? 'desc' : 'asc';
-            // 當 asc (舊到新、由上往下) 顯示 排序↓；當 desc (新到舊、由下往上) 顯示 排序↑
-            document.getElementById("sort-btn").innerText = window.sortOrder === 'asc' ? "排序↓" : "排序↑";
+            
+            // asc (舊到新) 顯示「排序↑」
+            // desc (新到舊) 顯示「排序↓」
+            document.getElementById("sort-btn").innerText = window.sortOrder === 'asc' ? "排序↑" : "排序↓";
             window.renderList();
         };
 
@@ -1092,14 +1094,15 @@
             const btn = document.getElementById("manual-sort-btn");
             if(window.manualSortEnabled) {
                 btn.className = "ml-2 text-[11px] bg-indigo-600 text-white px-2 py-0.5 rounded-md font-bold shadow-sm shrink-0";
-                window.sortOrder = 'asc';
+                window.sortOrder = 'asc'; // 手動排序鎖定為：舊到新
                 const sortBtn = document.getElementById("sort-btn");
-                sortBtn.innerText = "排序↓"; // 手動排序時鎖定為正序
+                sortBtn.innerText = "排序↑"; // 鎖定狀態的文字
                 sortBtn.className = "bg-slate-100 border border-slate-200 px-4 rounded-2xl text-[13px] font-bold text-slate-300 shadow-sm whitespace-nowrap cursor-not-allowed";
             } else {
                 btn.className = "ml-2 text-[11px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md font-bold shadow-sm shrink-0";
                 const sortBtn = document.getElementById("sort-btn");
-                sortBtn.innerText = "排序↓"; // 解除鎖定時恢復預設狀態
+                // 解除鎖定時，依據當下 sortOrder 恢復對應文字
+                sortBtn.innerText = window.sortOrder === 'asc' ? "排序↑" : "排序↓"; 
                 sortBtn.className = "bg-white border border-slate-200 px-4 rounded-2xl text-[13px] font-bold text-slate-400 shadow-sm whitespace-nowrap";
             }
             window.renderList();
