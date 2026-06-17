@@ -101,7 +101,7 @@ export default async function handler(req, res) {
 JSON 格式必須包含以下四個 key：
 1. "meaning": 繁體中文意思 (簡潔有力)
 2. "reading": KK音標 (例如 /tɛst/)
-3. "example": 給出一個多益商務情境的英文例句，並附上中文翻譯
+3. "example": 給出一個較常出現的多益職場或商務情境其中一種的英文例句 (純英文，絕對不要附上中文翻譯)
 4. "collocation": 1~2 個該單字在多益最常考的搭配詞 (例如 fulfill the requirements)`.trim();
 
     // 呼叫 Gemini 1.5 Flash API
