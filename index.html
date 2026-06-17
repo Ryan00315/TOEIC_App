@@ -148,28 +148,24 @@
     <div class="max-w-md mx-auto p-4">
        <button onclick="window.openNewWordPanel()" class="mb-4 bg-indigo-50 text-indigo-600 px-6 py-2.5 rounded-full text-sm font-bold border border-indigo-100 w-full active:scale-95 transition-all shadow-sm">＋ 新增多益單字</button>
        
-        <section id="input-section" class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm transition-all overflow-hidden text-center">
-             <div class="grid grid-cols-2 gap-3 mb-4 text-left">
+        <section id="input-section" class="bg-white rounded-[24px] p-4 border border-slate-200 shadow-sm transition-all overflow-hidden text-center">
+             <div class="grid grid-cols-2 gap-2 mb-2.5 text-left">
                <input id="word" type="text" placeholder="多益單字 (英文)" 
-                    class="bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300"
+                    class="bg-slate-50 py-2.5 px-3 rounded-xl outline-none text-sm border focus:border-indigo-300"
                     oninput="window.checkDuplicate()"
                     onkeydown="if(event.key === 'Enter') { event.preventDefault(); window.autoTranslate(event.shiftKey); this.blur(); }">
-                <input id="reading" type="text" placeholder="KK音標 與 音節 (自動生成)" onfocus="window.fixScroll()" class="bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300">
+                <input id="reading" type="text" placeholder="KK音標與音節" onfocus="window.fixScroll()" class="bg-slate-50 py-2.5 px-3 rounded-xl outline-none text-sm border focus:border-indigo-300">
             </div>
-            <div class="relative mb-4 text-left">
-                <input id="meaning" type="text" placeholder="中文 (自動翻譯)" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 pr-36 rounded-2xl outline-none text-sm border focus:border-indigo-300 font-bold">
-                <button id="translate-btn-action" onclick="window.autoTranslate()" class="absolute right-2 top-2 bottom-2 bg-white text-[10px] px-2 rounded-xl border border-slate-200 font-bold text-slate-500 transition-all">👉 免費 Google 翻譯</button>
+            
+            <div class="relative mb-2.5 text-left">
+                <input id="meaning" type="text" placeholder="中文意思 (自動翻譯)" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 py-2.5 px-3 pr-28 rounded-xl outline-none text-sm border focus:border-indigo-300 font-bold">
+                <button id="translate-btn-action" onclick="window.autoTranslate()" class="absolute right-1 top-1 bottom-1 bg-white text-[10px] px-2.5 rounded-lg border border-slate-200 font-bold text-slate-500 transition-all shadow-sm">👉 Gemini AI</button>
             </div>
-            <div class="mb-4 text-left">
-                <input id="collocation" type="text" placeholder="🎯 多益常考搭配詞 (例如: fulfill the requirements)" onfocus="window.fixScroll()" class="w-full bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300">
-            </div>
-            <div class="mb-4 text-left">
-                <textarea id="word-example" placeholder="多益商務例句 (自動翻譯時會自動填入)" class="w-full bg-slate-50 p-4 rounded-2xl outline-none text-sm border focus:border-indigo-300 h-20 resize-none"></textarea>
-            </div>
-            <div class="mb-4 text-left">
-                <label class="block text-[11px] font-bold text-slate-400 mb-1 pl-2">🏷️ 多益情境標籤 (聯想群聚記憶)</label>
-                <select id="word-tag" class="w-full bg-slate-50 p-3 rounded-2xl outline-none text-sm border focus:border-indigo-300">
-                    <option value="">-- 無情境標籤 --</option>
+            
+            <div class="grid grid-cols-2 gap-2 mb-2.5 text-left">
+                <input id="collocation" type="text" placeholder="🎯 搭配詞 (如 fulfill...)" onfocus="window.fixScroll()" class="w-full bg-slate-50 py-2.5 px-3 rounded-xl outline-none text-xs border focus:border-indigo-300">
+                <select id="word-tag" class="w-full bg-slate-50 py-2.5 px-2 rounded-xl outline-none text-xs border focus:border-indigo-300 font-medium text-slate-500">
+                    <option value="">🏷️ 無情境標籤</option>
                     <option value="人資招募">#人資招募</option>
                     <option value="商務合約">#商務合約</option>
                     <option value="財務金融">#財務金融</option>
@@ -177,16 +173,22 @@
                     <option value="行政辦公">#行政辦公</option>
                 </select>
             </div>
-            <div class="flex gap-2 mb-3 overflow-x-auto no-scrollbar pb-1">
-                <button id="new-book-0-2k-tab" onclick="window.setNewBookTab('0-2k')" class="flex-1 border py-1.5 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap shrink-0">0-2k</button>
-                <button id="new-book-2-5k-tab" onclick="window.setNewBookTab('2-5k')" class="flex-1 border py-1.5 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap shrink-0">2-5k</button>
-                <button id="new-book-TOEIC-tab" onclick="window.setNewBookTab('TOEIC')" class="flex-1 border py-1.5 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap shrink-0">TOEIC</button>
-                <button id="new-note-tab" onclick="window.setNewBookTab('note')" class="flex-1 border py-1.5 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap shrink-0">個人筆記</button>
-                <button id="new-book-進階商務-tab" onclick="window.setNewBookTab('進階商務')" class="flex-1 border py-1.5 px-3 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap shrink-0">進階商務</button>
+
+            <div class="mb-3 text-left">
+                <textarea id="word-example" placeholder="多益商務例句 (自動填入)" class="w-full bg-slate-50 py-2 px-3 rounded-xl outline-none text-sm border focus:border-indigo-300 h-14 resize-none"></textarea>
             </div>
-            <div id="new-lesson-container" class="no-scrollbar pb-3 mb-2"></div>
-            <div id="new-category-picker" class="no-scrollbar mb-6"></div>
-            <button id="submit-btn" onclick="window.submitNewWord()" class="w-3/4 mx-auto bg-slate-900 text-white py-3 rounded-2xl font-bold shadow-xl block text-sm">儲存到單字冊</button>
+            
+            <div class="flex gap-1.5 mb-2 overflow-x-auto no-scrollbar pb-1">
+                <button id="new-book-0-2k-tab" onclick="window.setNewBookTab('0-2k')" class="flex-1 border py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap shrink-0">0-2k</button>
+                <button id="new-book-2-5k-tab" onclick="window.setNewBookTab('2-5k')" class="flex-1 border py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap shrink-0">2-5k</button>
+                <button id="new-book-TOEIC-tab" onclick="window.setNewBookTab('TOEIC')" class="flex-1 border py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap shrink-0">TOEIC</button>
+                <button id="new-note-tab" onclick="window.setNewBookTab('note')" class="flex-1 border py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap shrink-0">個人筆記</button>
+                <button id="new-book-進階商務-tab" onclick="window.setNewBookTab('進階商務')" class="flex-1 border py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap shrink-0">進階商務</button>
+            </div>
+            <div id="new-lesson-container" class="no-scrollbar pb-1 mb-1.5"></div>
+            <div id="new-category-picker" class="no-scrollbar mb-4"></div>
+            
+            <button id="submit-btn" onclick="window.submitNewWord()" class="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold shadow-md block text-sm active:scale-95 transition-all">儲存到單字冊</button>
         </section>
         <ul id="vocab-list" class="space-y-3 mt-4"></ul>
     </div>
