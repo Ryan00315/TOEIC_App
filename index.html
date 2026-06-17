@@ -551,7 +551,12 @@
                     body: JSON.stringify({ text: inputVal })
                 });
 
-                if (!response.ok) throw new Error("API 請求失敗");
+                // 🌟【透視眼鏡除錯版】抓出真正的錯誤訊息
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || `HTTP 狀態碼: ${response.status}`);
+                }
+                
                 const data = await response.json();
 
                 if (readingEl) readingEl.value = data.reading || "";
@@ -579,7 +584,9 @@
                 
             } catch (e) {
                 console.error(e);
-                window.showToast("❌ 網路或 API 請求失敗");
+                // 🌟 直接用 alert 彈出真正的死因
+                alert("抓到蟲了！錯誤原因：\n" + e.message);
+                window.showToast("❌ 請求失敗");
             } finally {
                 window.isTranslating = false;
                 if (transBtn) { transBtn.disabled = false; transBtn.innerText = "👉 Gemini Ai"; }
