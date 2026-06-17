@@ -509,84 +509,76 @@
             window.switchUser(cleanName);
         };
 
-        // 自動翻譯引擎
+        // 智能 AI 自動翻譯引擎 (透過 Vercel 後端保護 API Key)
         window.autoTranslate = async () => {
             if (window.isTranslating) {
-                window.showToast("🤖 自動查詢中...");
+                window.showToast("🤖 AI 思考中...");
                 return;
             }
             const wordField = document.getElementById("word");
             const inputVal = wordField ? wordField.value.trim() : "";
             if (!inputVal) { alert("請輸入英文單字"); return; }
-        
+
             const readingEl = document.getElementById("reading"); 
             const meaningEl = document.getElementById("meaning");
             const exampleEl = document.getElementById("word-example");
+            const collocationEl = document.getElementById("collocation"); // 抓取搭配詞欄位
             const transBtn = document.getElementById("translate-btn-action");
-        
+
+            // 檢查快取
             if (window.translateCache[inputVal] && window.translateCache[inputVal].example) {
                 const cached = window.translateCache[inputVal];
-                if (readingEl) readingEl.value = cached.phonetic || "";
+                if (readingEl) readingEl.value = cached.reading || "";
                 if (meaningEl) {
-                    meaningEl.value = cached.chinese || "";
+                    meaningEl.value = cached.meaning || "";
                     meaningEl.dispatchEvent(new Event("input", { bubbles: true }));
                 }
                 if (exampleEl) exampleEl.value = cached.example || "";
+                if (collocationEl) collocationEl.value = cached.collocation || "";
                 window.showToast("⚡ 使用快取數據");
                 return;
             }
-        
+
             window.isTranslating = true;
-            if (transBtn) { transBtn.disabled = true; transBtn.innerText = "⏳ 雲端處理中..."; }
-        
+            if (transBtn) { transBtn.disabled = true; transBtn.innerText = "⏳ AI 處理中..."; }
+
             try {
-                const transRes = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q=${encodeURIComponent(inputVal)}`);
-                const transData = await transRes.json();
-                const translatedText = transData[0][0][0] || "";
-        
-                const dictRes = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(inputVal)}`);
-                let phoneticText = "";
-                let syllableText = inputVal; 
-                let exampleText = "";
-        
-                if (dictRes.ok) {
-                    const dictData = await dictRes.json();
-                    phoneticText = (dictData[0] && dictData[0].phonetic) || (dictData[0] && dictData[0].phonetics && dictData[0].phonetics.find(p => p.text) && dictData[0].phonetics.find(p => p.text).text) || "";
-                    const meanings = (dictData[0] && dictData[0].meanings) || [];
-                    for (const m of meanings) {
-                        const definitionWithExample = m.definitions && m.definitions.find(d => d.example);
-                        if (definitionWithExample) {
-                            exampleText = definitionWithExample.example;
-                            break;
-                        }
-                    }
-                }
-        
-                if (!phoneticText) phoneticText = `/${inputVal}/`;
-                syllableText = inputVal.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '').match(/[aeiouy]{1,2}[^aeiouy]*/g);
-                const processedSyllables = syllableText ? syllableText.join("-") : inputVal;
-                const finalPhoneticAndSyllable = `${phoneticText} 【${processedSyllables}】`;
-        
-                if (readingEl) readingEl.value = finalPhoneticAndSyllable;
+                // ⚠️ 這裡要換成你為多益建立的新 Vercel 專案網址
+                // 例如: https://toeic-api-xxxx.vercel.app/api/translate
+                const response = await fetch("https://你的-多益-vercel-網址.vercel.app/api/translate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: inputVal })
+                });
+
+                if (!response.ok) throw new Error("API 請求失敗");
+                const data = await response.json();
+
+                // 填入所有欄位
+                if (readingEl) readingEl.value = data.reading || "";
                 if (meaningEl) {
-                    meaningEl.value = translatedText;
+                    meaningEl.value = data.meaning || "";
                     meaningEl.dispatchEvent(new Event("input", { bubbles: true }));
                 }
-                if (exampleEl) exampleEl.value = exampleText || "（此單字開源 API 未提供例句）";
-        
+                if (exampleEl) exampleEl.value = data.example || "";
+                if (collocationEl) collocationEl.value = data.collocation || "";
+
+                // 存入快取
                 window.translateCache[inputVal] = {
-                    phonetic: finalPhoneticAndSyllable,
-                    chinese: translatedText,
-                    example: exampleText
+                    reading: data.reading,
+                    meaning: data.meaning,
+                    example: data.example,
+                    collocation: data.collocation
                 };
                 localStorage.setItem("toeic_translate_cache_v1", JSON.stringify(window.translateCache));
-                window.showToast(exampleText ? "✨ 免費查詢成功（含例句）！" : "✨ 查詢成功（此字無例句）");
+                window.showToast("✨ AI 智能查詢成功！");
+                
             } catch (e) {
                 console.error(e);
-                window.showToast("❌ 網路請求失敗，請手動輸入");
+                window.showToast("❌ 網路或 API 請求失敗");
             } finally {
                 window.isTranslating = false;
-                if (transBtn) { transBtn.disabled = false; transBtn.innerText = "👉 免費 Google 翻譯"; }
+                if (transBtn) { transBtn.disabled = false; transBtn.innerText = "👉 Gemini AI 翻譯"; }
             }
         };
 
