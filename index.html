@@ -720,13 +720,18 @@
                     owner: (window.newWordBook === 'note') ? currentUser : 'public'
                 });
                 window.showToast("🎉 成功加入多益字庫！");
+                
+                // 清空輸入框
                 document.getElementById('word').value = "";
                 document.getElementById('reading').value = "";
                 document.getElementById('meaning').value = "";
                 document.getElementById('collocation').value = "";
                 document.getElementById('word-example').value = "";
                 document.getElementById('word-tag').value = "";
-                document.getElementById("input-section").classList.remove("show");
+                
+                // 移除收起面板的程式碼，並讓游標自動跳回第一個輸入框，方便連續打字
+                document.getElementById('word').focus();
+                
             } catch(e) {
                 console.error(e);
                 alert("寫入失敗");
@@ -743,15 +748,25 @@
         };
 
         window.toggleFilters = () => {
-            window.isFilterHidden = !window.isFilterHidden;
             const wrapper = document.getElementById("filter-wrapper");
             const btn = document.getElementById("toggle-filter-btn");
-            if (window.isFilterHidden) {
-                wrapper.style.display = 'none';
-                btn.innerText = "顯示篩選";
-            } else {
+            // 透過抓取其中一顆按鈕的父層，來控制整排書本頁籤
+            const bookTabs = document.getElementById("book-0-2k-btn").parentElement;
+            
+            // 檢查目前是否為隱藏狀態 (包含初始的 hidden class 或行內樣式)
+            const isCurrentlyHidden = wrapper.classList.contains('hidden') || wrapper.style.display === 'none';
+            
+            if (isCurrentlyHidden) {
+                // 打開所有篩選與書本
+                wrapper.classList.remove('hidden');
                 wrapper.style.display = 'block';
+                if (bookTabs) bookTabs.style.display = 'flex';
                 btn.innerText = "隱藏篩選";
+            } else {
+                // 隱藏所有篩選與書本
+                wrapper.style.display = 'none';
+                if (bookTabs) bookTabs.style.display = 'none';
+                btn.innerText = "顯示篩選";
             }
         };
 
