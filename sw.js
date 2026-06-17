@@ -1,4 +1,4 @@
-const CACHE_NAME = 'toeic-app-v2';
+const CACHE_NAME = 'toeic-app-v3';
 const URLS_TO_CACHE = [
     './',
     './index.html',
