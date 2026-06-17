@@ -149,7 +149,8 @@
        <button onclick="window.openNewWordPanel()" class="mb-4 bg-indigo-50 text-indigo-600 px-6 py-2.5 rounded-full text-sm font-bold border border-indigo-100 w-full active:scale-95 transition-all shadow-sm">＋ 新增多益單字</button>
        
         <section id="input-section" class="bg-white rounded-[24px] p-4 border border-slate-200 shadow-sm transition-all overflow-hidden text-center">
-             <div class="grid grid-cols-2 gap-2 mb-2.5 text-left">
+             
+            <div class="grid grid-cols-2 gap-2 mb-2 text-left">
                <input id="word" type="text" placeholder="多益單字 (英文)" 
                     class="bg-slate-50 py-2.5 px-3 rounded-xl outline-none text-sm border focus:border-indigo-300"
                     oninput="window.checkDuplicate()"
@@ -157,25 +158,31 @@
                 <input id="reading" type="text" placeholder="KK音標與音節" onfocus="window.fixScroll()" class="bg-slate-50 py-2.5 px-3 rounded-xl outline-none text-sm border focus:border-indigo-300">
             </div>
             
-            <div class="relative mb-2.5 text-left">
-                <input id="meaning" type="text" placeholder="中文意思 (自動翻譯)" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 py-2.5 px-3 pr-28 rounded-xl outline-none text-sm border focus:border-indigo-300 font-bold">
-                <button id="translate-btn-action" onclick="window.autoTranslate()" class="absolute right-1 top-1 bottom-1 bg-white text-[10px] px-2.5 rounded-lg border border-slate-200 font-bold text-slate-500 transition-all shadow-sm">👉 Gemini AI</button>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2 mb-2.5 text-left">
-                <input id="collocation" type="text" placeholder="🎯 搭配詞 (如 fulfill...)" onfocus="window.fixScroll()" class="w-full bg-slate-50 py-2.5 px-3 rounded-xl outline-none text-xs border focus:border-indigo-300">
-                <select id="word-tag" class="w-full bg-slate-50 py-2.5 px-2 rounded-xl outline-none text-xs border focus:border-indigo-300 font-medium text-slate-500">
-                    <option value="">🏷️ 無情境標籤</option>
-                    <option value="人資招募">#人資招募</option>
-                    <option value="商務合約">#商務合約</option>
-                    <option value="財務金融">#財務金融</option>
-                    <option value="行銷銷售">#行銷銷售</option>
-                    <option value="行政辦公">#行政辦公</option>
+            <div class="flex gap-2 mb-2 text-left">
+                <div class="relative flex-[2]">
+                    <input id="meaning" type="text" placeholder="中文意思" oninput="window.checkDuplicate()" onfocus="window.fixScroll()" class="w-full bg-slate-50 py-2.5 px-3 pr-16 rounded-xl outline-none text-sm border focus:border-indigo-300 font-bold">
+                    <button id="translate-btn-action" onclick="window.autoTranslate()" class="absolute right-1 top-1 bottom-1 bg-white text-[10px] px-2 rounded-lg border border-slate-200 font-bold text-slate-500 transition-all shadow-sm">AI 翻譯</button>
+                </div>
+                <select id="word-tag" class="flex-[1] bg-slate-50 py-2.5 px-1 rounded-xl outline-none text-[11px] border focus:border-indigo-300 font-medium text-slate-600">
+                    <option value="">🏷️ 無情境</option>
+                    <option value="人資招募">#人資</option>
+                    <option value="商務合約">#合約</option>
+                    <option value="財務金融">#財務</option>
+                    <option value="行銷銷售">#行銷</option>
+                    <option value="行政辦公">#行政</option>
                 </select>
             </div>
+            
+            <div class="mb-2 text-left">
+                <input id="collocation" type="text" placeholder="🎯 搭配詞 (如: fulfill the requirements)" onfocus="window.fixScroll()" class="w-full bg-slate-50 py-2.5 px-3 rounded-xl outline-none text-xs border focus:border-indigo-300">
+            </div>
 
-            <div class="mb-3 text-left">
-                <textarea id="word-example" placeholder="多益商務例句 (自動填入)" class="w-full bg-slate-50 py-2 px-3 rounded-xl outline-none text-sm border focus:border-indigo-300 h-14 resize-none"></textarea>
+            <div class="flex gap-2 mb-3 text-left h-14">
+                <textarea id="word-example" placeholder="多益商務例句 (自動填入)" class="flex-[3] bg-slate-50 py-2 px-3 rounded-xl outline-none text-xs border focus:border-indigo-300 resize-none h-full leading-relaxed"></textarea>
+                
+                <button id="submit-btn" onclick="window.submitNewWord()" class="flex-[1] bg-sky-400 text-black rounded-xl font-black shadow-sm text-sm active:scale-95 transition-all flex flex-col items-center justify-center leading-tight">
+                    儲存
+                </button>
             </div>
             
             <div class="flex gap-1.5 mb-2 overflow-x-auto no-scrollbar pb-1">
@@ -186,9 +193,8 @@
                 <button id="new-book-進階商務-tab" onclick="window.setNewBookTab('進階商務')" class="flex-1 border py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap shrink-0">進階商務</button>
             </div>
             <div id="new-lesson-container" class="no-scrollbar pb-1 mb-1.5"></div>
-            <div id="new-category-picker" class="no-scrollbar mb-4"></div>
+            <div id="new-category-picker" class="no-scrollbar mb-1"></div>
             
-            <button id="submit-btn" onclick="window.submitNewWord()" class="w-full bg-slate-900 text-white py-2.5 rounded-xl font-bold shadow-md block text-sm active:scale-95 transition-all">儲存到單字冊</button>
         </section>
         <ul id="vocab-list" class="space-y-3 mt-4"></ul>
     </div>
@@ -619,16 +625,20 @@
 
         window.fixScroll = () => {};
 
-        // 重複校正與狀態判定
+       // 重複校正與狀態判定
         window.checkDuplicate = () => {
             const w = document.getElementById('word').value.trim();
             const m = document.getElementById('meaning').value.trim();
             const btn = document.getElementById('submit-btn');
             const existing = window.vocabs.find(v => w && m && (v.word || "").trim().toLowerCase() === w.toLowerCase() && (v.meaning || "").trim() === m);
         
+            // 將基礎樣式中的字體放大為 text-sm
+            const baseClass = "flex-[1] rounded-xl font-black shadow-sm active:scale-95 transition-all flex flex-col items-center justify-center leading-tight text-sm";
+
             if (existing) {
-                btn.innerText = `⚠️ 單字已存在庫中 (點擊定位)`;
-                btn.className = "w-3/4 mx-auto bg-yellow-500 text-white py-3 rounded-2xl font-bold shadow-xl block text-sm";
+                // 如果單字重複，稍微縮小文字以免破版
+                btn.innerHTML = `<span class="text-xs">⚠️ 已存</span><span class="text-[9px] mt-0.5">(點此尋找)</span>`;
+                btn.className = `${baseClass} bg-yellow-400 text-black`;
                 btn.onclick = () => {
                     document.getElementById('searchInput').value = `${w}`;
                     window.renderList();
@@ -636,12 +646,13 @@
                 };
             } else {
                 btn.onclick = window.submitNewWord;
+                // 不管是一般單字冊還是個人筆記，統一顯示「儲存」
+                btn.innerHTML = `儲存`;
+                
                 if (window.newWordBook === 'note') {
-                    btn.innerText = "儲存個人多益筆記";
-                    btn.className = "w-3/4 mx-auto bg-orange-500 text-white py-3 rounded-2xl font-bold shadow-xl block text-sm";
+                    btn.className = `${baseClass} bg-orange-400 text-black`;
                 } else {
-                    btn.innerText = "儲存到多益單字冊";
-                    btn.className = "w-3/4 mx-auto bg-slate-900 text-white py-3 rounded-2xl font-bold shadow-xl block text-sm";
+                    btn.className = `${baseClass} bg-sky-400 text-black`;
                 }
             }
         };
