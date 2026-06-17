@@ -544,8 +544,8 @@
             if (transBtn) { transBtn.disabled = true; transBtn.innerText = "⏳ AI 處理中..."; }
 
             try {
-                // ⚠️ 記得換成你真正的 Vercel 網址
-                const response = await fetch("https://toeic-app-ruddy.vercel.app/", {
+                // ⚠️ 加上 /api/translate 路徑，才能打到正確的後端程式
+                const response = await fetch("https://toeic-app-ruddy.vercel.app/api/translate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ text: inputVal })
