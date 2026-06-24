@@ -7,7 +7,7 @@
   "theme_color": "#4f46e5",
   "icons": [
     {
-      "src": "./LIN-03.png",
+      "src": "./LIN-02.png",
       "sizes": "192x192 512x512",
       "type": "image/png",
       "purpose": "any maskable"
